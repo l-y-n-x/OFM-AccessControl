@@ -582,12 +582,12 @@ void AccessControl::processNfcScanSuccess(uint16_t foundId, bool external)
 
 void AccessControl::sendScanAccessData(SyncType syncType, bool success, uint16_t foundId)
 {
-    KoACC_ScanAccessData.valueNoSend(foundId, Dpt(15, 1, 0));   // access identification code
-    KoACC_ScanAccessData.valueNoSend(false, Dpt(15, 1, 1));     // detection error
-    KoACC_ScanAccessData.valueNoSend(success, Dpt(15, 1, 2));   // permission accepted
-    KoACC_ScanAccessData.valueNoSend(false, Dpt(15, 1, 3));     // read direction (not used)
-    KoACC_ScanAccessData.valueNoSend(false, Dpt(15, 1, 4));     // encryption (not used for now)
-    KoACC_ScanAccessData.value(syncType, Dpt(15, 1, 5));        // index of access identification code (used as type)
+    KoACC_ScanAccessData.valueNoSend(foundId, Dpt(15, 0, 0));   // access identification code
+    KoACC_ScanAccessData.valueNoSend(false, Dpt(15, 0, 1));     // detection error
+    KoACC_ScanAccessData.valueNoSend(success, Dpt(15, 0, 2));   // permission accepted
+    KoACC_ScanAccessData.valueNoSend(false, Dpt(15, 0, 3));     // read direction (not used)
+    KoACC_ScanAccessData.valueNoSend(false, Dpt(15, 0, 4));     // encryption (not used for now)
+    KoACC_ScanAccessData.value(syncType, Dpt(15, 0, 5));        // index of access identification code (used as type)
 }
 
 bool AccessControl::searchForFinger()
