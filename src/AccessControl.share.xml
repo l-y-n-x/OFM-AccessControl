@@ -363,7 +363,7 @@
             </Script>
           </Static>
           <Dynamic>
-            <Channel Id="%AID%_CH-Basic" Name="BasicChannel" Number="1" Text="Zutrittskontrolle" Icon="shield-lock-outline" HelpContext="ACC-Dokumentation">
+            <Channel Id="%AID%_CH-Basic" Name="BasicChannel" Number="%PREFIX%" Text="Zutrittskontrolle" Icon="shield-lock-outline" HelpContext="ACC-Dokumentation">
               <ParameterBlock Id="%AID%_PB-nnn" Name="Basic" Text="Allgemein" Icon="cog-outline" HelpContext="ACC-Dokumentation" ShowInComObjectTree="true">
                 <ParameterSeparator Id="%AID%_PS-nnn" Text="Zutrittskontrolle" UIHint="Headline" />
                 <ParameterSeparator Id="%AID%_PS-nnn" Text="Version: %ModuleVersion%" />
