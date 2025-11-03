@@ -4,3 +4,4 @@ Mit dieser Funktion werden sämtliche gespeicherten NFC-Tags inklusive aller Tag
 
 
 
+

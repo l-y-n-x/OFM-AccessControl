@@ -34,22 +34,23 @@ void AccessControl::setup()
     pinMode(SCANNER_TOUCH_PIN, INPUT_PULLDOWN);
     attachInterrupt(digitalPinToInterrupt(SCANNER_TOUCH_PIN), AccessControl::interruptDisplayTouched, FALLING);
 
-    if (ParamACC_NfcScanner == 1)
+    if (ParamACC_EnableTouchPcb ||
+        ParamACC_NfcScanner == 1)
     {
-        openknxGPIOModule.pinMode(DIRECT_LED_GREEN_PIN, OUTPUT);
-        openknxGPIOModule.pinMode(DIRECT_LED_RED_PIN, OUTPUT);
+        openknx.gpio.pinMode(DIRECT_LED_GREEN_PIN, OUTPUT);
+        openknx.gpio.pinMode(DIRECT_LED_RED_PIN, OUTPUT);
 
-        openknxGPIOModule.pinMode(DIRECT_TOUCH_LEFT_PIN, INPUT);
-        openknxGPIOModule.pinMode(DIRECT_TOUCH_RIGHT_PIN, INPUT);
+        openknx.gpio.pinMode(DIRECT_TOUCH_LEFT_PIN, INPUT);
+        openknx.gpio.pinMode(DIRECT_TOUCH_RIGHT_PIN, INPUT);
         attachInterrupt(digitalPinToInterrupt(DIRECT_TOUCH_LEFT_PIN), AccessControl::interruptTouchLeft, CHANGE);
         attachInterrupt(digitalPinToInterrupt(DIRECT_TOUCH_RIGHT_PIN), AccessControl::interruptTouchRight, CHANGE);
     }
     else if (ParamACC_NfcScanner == 2)
     {
-        openknxGPIOModule.pinMode(EXTERN_TOUCH_LEFT_PIN, INPUT);
-        openknxGPIOModule.pinMode(EXTERN_TOUCH_RIGHT_PIN, INPUT);
-        openknxGPIOModule.pinMode(EXTERN_LED_GREEN_PIN, OUTPUT);
-        openknxGPIOModule.pinMode(EXTERN_LED_RED_PIN, OUTPUT);
+        openknx.gpio.pinMode(EXTERN_TOUCH_LEFT_PIN, INPUT);
+        openknx.gpio.pinMode(EXTERN_TOUCH_RIGHT_PIN, INPUT);
+        openknx.gpio.pinMode(EXTERN_LED_GREEN_PIN, OUTPUT);
+        openknx.gpio.pinMode(EXTERN_LED_RED_PIN, OUTPUT);
     }
 
     switchLedRedPower(false);
@@ -96,10 +97,10 @@ void AccessControl::initNfc(bool testMode, uint8_t testModeNfc)
 
     if (nfcType == 2)
     {
-        openknxGPIOModule.pinMode(0x0200, OUTPUT);
-        openknxGPIOModule.digitalWrite(0x0200, LOW);
-        openknxGPIOModule.pinMode(0x0201, OUTPUT);
-        openknxGPIOModule.digitalWrite(0x0201, LOW);
+        openknx.gpio.pinMode(0x0200, OUTPUT);
+        openknx.gpio.digitalWrite(0x0200, LOW);
+        openknx.gpio.pinMode(0x0201, OUTPUT);
+        openknx.gpio.digitalWrite(0x0201, LOW);
     }
 
     PN7160Interface::initialize(NFC_IRQ_PIN, NFC_VEN_PIN, NFC_PN7160_ADDR);
@@ -178,18 +179,26 @@ bool AccessControl::switchFingerprintPower(bool on, bool testMode)
 
 void AccessControl::switchLedGreenPower(bool on)
 {
-    if (ParamACC_NfcScanner == 0)
+    if (!ParamACC_EnableTouchPcb &&
+        ParamACC_NfcScanner == 0)
         return;
     
-    openknxGPIOModule.digitalWrite(ParamACC_NfcScanner == 1 ? DIRECT_LED_GREEN_PIN : EXTERN_LED_GREEN_PIN, on ? HIGH : LOW);
+    bool direct = ParamACC_EnableTouchPcb || ParamACC_NfcScanner == 1;
+    openknx.gpio.digitalWrite(direct ? DIRECT_LED_GREEN_PIN : EXTERN_LED_GREEN_PIN, on ? HIGH : LOW);
+
+    logDebugP("Switch LED green power: %u", on);
 }
 
 void AccessControl::switchLedRedPower(bool on)
 {
-    if (ParamACC_NfcScanner == 0)
+    if (!ParamACC_EnableTouchPcb &&
+        ParamACC_NfcScanner == 0)
         return;
     
-    openknxGPIOModule.digitalWrite(ParamACC_NfcScanner == 1 ? DIRECT_LED_RED_PIN : EXTERN_LED_RED_PIN, on ? HIGH : LOW);
+    bool direct = ParamACC_EnableTouchPcb || ParamACC_NfcScanner == 1;
+    openknx.gpio.digitalWrite(direct ? DIRECT_LED_RED_PIN : EXTERN_LED_RED_PIN, on ? HIGH : LOW);
+    
+    logDebugP("Switch LED red power: %u", on);
 }
 
 void AccessControl::initFingerprintScanner(bool testMode)
@@ -393,8 +402,8 @@ void AccessControl::loop()
 
     if (ParamACC_NfcScanner == 2)
     {
-        touchLeftTouched = openknxGPIOModule.digitalRead(EXTERN_TOUCH_LEFT_PIN) == HIGH;
-        touchRightTouched = openknxGPIOModule.digitalRead(EXTERN_TOUCH_RIGHT_PIN) == HIGH;
+        touchLeftTouched = openknx.gpio.digitalRead(EXTERN_TOUCH_LEFT_PIN) == HIGH;
+        touchRightTouched = openknx.gpio.digitalRead(EXTERN_TOUCH_RIGHT_PIN) == HIGH;
     }
 
     if ((bool)KoACC_TouchPcbButtonLeft.value(DPT_Switch) != touchLeftTouched)
@@ -632,12 +641,12 @@ void AccessControl::processNfcScanSuccess(uint16_t foundId, bool external)
 
 void AccessControl::sendScanAccessData(SyncType syncType, bool success, uint16_t foundId)
 {
-    KoACC_ScanAccessData.valueNoSend(foundId, Dpt(15, 1, 0));   // access identification code
-    KoACC_ScanAccessData.valueNoSend(false, Dpt(15, 1, 1));     // detection error
-    KoACC_ScanAccessData.valueNoSend(success, Dpt(15, 1, 2));   // permission accepted
-    KoACC_ScanAccessData.valueNoSend(false, Dpt(15, 1, 3));     // read direction (not used)
-    KoACC_ScanAccessData.valueNoSend(false, Dpt(15, 1, 4));     // encryption (not used for now)
-    KoACC_ScanAccessData.value(syncType, Dpt(15, 1, 5));        // index of access identification code (used as type)
+    KoACC_ScanAccessData.valueNoSend(foundId, Dpt(15, 0, 0));   // access identification code
+    KoACC_ScanAccessData.valueNoSend(false, Dpt(15, 0, 1));     // detection error
+    KoACC_ScanAccessData.valueNoSend(success, Dpt(15, 0, 2));   // permission accepted
+    KoACC_ScanAccessData.valueNoSend(false, Dpt(15, 0, 3));     // read direction (not used)
+    KoACC_ScanAccessData.valueNoSend(false, Dpt(15, 0, 4));     // encryption (not used for now)
+    KoACC_ScanAccessData.value(syncType, Dpt(15, 0, 5));        // index of access identification code (used as type)
 }
 
 bool AccessControl::searchForFinger()
@@ -2249,24 +2258,24 @@ void AccessControl::runTestMode(uint8_t testModeNfc, bool testModeKeypad)
 
     if (testModeNfc < 2)
     {
-        openknxGPIOModule.pinMode(DIRECT_LED_GREEN_PIN, OUTPUT);
-        openknxGPIOModule.pinMode(DIRECT_LED_RED_PIN, OUTPUT);
+        openknx.gpio.pinMode(DIRECT_LED_GREEN_PIN, OUTPUT);
+        openknx.gpio.pinMode(DIRECT_LED_RED_PIN, OUTPUT);
     }
     else
     {
-        openknxGPIOModule.pinMode(EXTERN_LED_GREEN_PIN, OUTPUT);
-        openknxGPIOModule.pinMode(EXTERN_LED_RED_PIN, OUTPUT);
+        openknx.gpio.pinMode(EXTERN_LED_GREEN_PIN, OUTPUT);
+        openknx.gpio.pinMode(EXTERN_LED_RED_PIN, OUTPUT);
     }
 
     logInfoP("Touch buttons red");
-    openknxGPIOModule.digitalWrite(testModeNfc < 2 ? DIRECT_LED_RED_PIN : EXTERN_LED_RED_PIN, HIGH);
+    openknx.gpio.digitalWrite(testModeNfc < 2 ? DIRECT_LED_RED_PIN : EXTERN_LED_RED_PIN, HIGH);
     delay(1000);
-    openknxGPIOModule.digitalWrite(testModeNfc < 2 ? DIRECT_LED_RED_PIN : EXTERN_LED_RED_PIN, LOW);
+    openknx.gpio.digitalWrite(testModeNfc < 2 ? DIRECT_LED_RED_PIN : EXTERN_LED_RED_PIN, LOW);
 
     logInfoP("Touch buttons green");
-    openknxGPIOModule.digitalWrite(testModeNfc < 2 ? DIRECT_LED_GREEN_PIN : EXTERN_LED_GREEN_PIN, HIGH);
+    openknx.gpio.digitalWrite(testModeNfc < 2 ? DIRECT_LED_GREEN_PIN : EXTERN_LED_GREEN_PIN, HIGH);
     delay(1000);
-    openknxGPIOModule.digitalWrite(testModeNfc < 2 ? DIRECT_LED_GREEN_PIN : EXTERN_LED_GREEN_PIN, LOW);
+    openknx.gpio.digitalWrite(testModeNfc < 2 ? DIRECT_LED_GREEN_PIN : EXTERN_LED_GREEN_PIN, LOW);
     logIndentDown();
 
 #ifdef OPENKNX_SWA_SET_PINS

@@ -18,6 +18,12 @@ Es gibt eine kleinere Applikationsversion mit bis zu 200 Aktionen/Fingerzuordnun
 
 Im folgenden werden Änderungen an dem Dokument erfasst, damit man nicht immer das Gesamtdokument lesen muss, um Neuerungen zu erfahren.
 
+18.09.2025: Firmware 0.10, Applikation 0.10
+
+* FIX: Rot/Grüne LED sowie Touch-Tasten wurden beim Schaltereinsatz ohne NFC nicht erkannt.
+* FIX: Partielle Parameterüberlagerung in ETS konnte zu Problemen bei aktivierten Zusatzfunktionsoptionen in der ETS führen.
+* FIX: Die Fingerprint-Scanner-Passwortlänge ist nun in der ETS auf 15 Zeichen (statt wie bisher 16) beschränkt, konsistent mit der firmware-seitigen Beschränkung auf 15 Zeichen.
+
 01.04.2025: Firmware 0.9, Applikation 0.9
 
 * NEU: Externer NFC-Leser is in der Applikation auswählbar und wird jetzt auch von der Firmware unterstützt.
@@ -179,6 +185,14 @@ Auswahl der angeschlossenen NFC-Scanner-Hardware. Es wird die folgendes angebote
 * **Kein NFC** (Standard): Wenn keine NFC-Scanner-Hardware angeschlossen ist
 * **Schaltereinsatz mit NFC**: Die Touch-Frontplatine ist mit der NFC-Scanner-Hardware ausgerüstet, zu erkennen an der NFC-Antenne
 * **Externer NFC-Leser**: Eine NFC-Scanner-Hardware ist über ein Kabel mit der Fingerprint-Platine verbunden
+
+<!-- DOC -->
+#### **Keypad**
+
+Auswahl der angeschlossenen Keypad-Hardware. Es wird die folgendes angeboten:
+
+* **Kein Keypad** (Standard): Wenn keine Keypad-Hardware angeschlossen ist
+* **Keypad von AB-Tools**: Eine Keypad-Hardware ist über ein Kabel mit der Fingerprint-Platine verbunden
 
 <!-- DOC -->
 #### **Touch-Frontplatine vorhanden**
@@ -473,6 +487,111 @@ Mit dieser Funktion werden sämtliche gespeicherten NFC-Tags inklusive aller Tag
 
 
 
+
+## **Keypad**
+
+Erscheint nur, wenn bei Keypad eine entscprechende Hardware ausgewählt wurde.
+Erscheint als Unterseite der Seite "Allgemein".
+
+Ein Keypad dient zur Eingabe eines Tastencodes und kann auch als Autorisierungsmechanismus für die AccessControl Hardware verwendet werden. 
+
+Ein Tastencode ist eine Folge von über das Keypad eingebbaren Zeichen. Man könnte auf die Idee kommen, einen Tastencode direkt mit einer Aktion zu verbinden, um so diese Aktion auszuführen. Ein solches Verfahren hätte den Nachteil, dass man sich nur auf die möglichen Zeichen (bzw. Tasten) eines bestimmten Keypad beschränken müsste. Außerden würden Änderungen eines Codes (weil diese z.B. durch abgucken zu vielen Menschen bekannt ist) dazu führen, dass dieser Code in allen zugehörigen Aktionen geändert werden müsste. Dies würde dann verhindern, dass Änderungen von Tastencodes synchronisiert werden können, da Aktionen nicht zwischen verschiedenen Geräten synchronisiert werden.
+
+Deswegen wird beim Keyped das gleiche Verfahren angewendet wie schon beim Fingerprint und bei NFC-Scanner: Es gibt eine Art Anlernprozess - nur ist dieser einfach direkt in der ETS vornehmbar: Man weist einfach einem Tastencode eine ID zu, diese werden mit den Tastencodes zusammen zwischen verschiedenen Geräten synchronisiert und können dann in Aktionen verwendet werden.
+
+### **Tastencodes bearbeiten**
+
+Dieser Bereich stellt einen Tastencode-Editor dar, mit dem man in der ETS einzelne Tastencodes anlegen, ändern oder löschen kann.
+
+<!-- DOC -->
+#### **Tastencode**
+
+Dieses Auswahlfeld wählt die gewünschte Editierfunktion aus:
+
+* **anlegen**: Zu einer neuen Tastendoce ID soll ein neuer Tastencode angelegt werden.
+* **ändern**: Zu einer bestimmten Tastencode ID soll der Tastencode geändert werden
+* **löschen**: Eine bestimmte Tastencode ID und der damit verbundene Tastencode werden gelöscht.
+
+### **Tastencode anlegen**
+
+Zum Anlegen muss eine neue Tastencode ID gewählt werden, dann der Name des Tastencodes eingegeben werden und der Tastencode selbst. Anschließend der Button "Anlegen" gedrückt werden.
+
+#### **Tastencode Name**
+
+Der Name des Testencodes, der angelegt werden soll. Der Name kann z.B. die Person sein, die diesen Code kennt oder die Rolle, die dieser Code übernehmen soll (Garage öffnen). 
+
+#### **Tastencode ID**
+
+Die ID des Tastencodes (= der Speicherplatz), auf welchen der Tastencode gespeichert werden soll.
+
+#### **Tastencode**
+
+Der einzugebende Tastencode. Es dürfen nur Zeichen verwendet werden, die das entsprechende Keypad auch anbietet.
+
+
+### **Tastencode ändern**
+
+Zum Ändern muss eine existierende Tastencode ID gewählt werden, dann der neue Name des Tastencodes und/oder der neue Tastencode eingegeben werden und anschließend der Button "Ändern" gedrückt werden.
+
+#### **Tastencode Name**
+
+Der Name des Testencodes, der geändert werden soll. Der Name kann z.B. die Person sein, die diesen Code kennt oder die Rolle, die dieser Code übernehmen soll (Garage öffnen). 
+
+#### **Tastencode ID**
+
+Die ID des Tastencodes (= der Speicherplatz), auf welchen der Tastencode gespeichert werden soll.
+
+#### **Tastencode**
+
+Der einzugebende Tastencode. Es dürfen nur Zeichen verwendet werden, die das entsprechende Keypad auch anbietet.
+
+
+### **Tastencode löschen**
+
+Zum löschen muss eine existierende (vorher angelegte) Tastencode ID eingegeben werden. Der Tatencode und dessen ID werden gelöscht, sobald der Button "löschen" gedrückt wurde.
+
+<!-- DOC HelpContext="Tastencode Name" -->
+<!-- DOCCONTENT
+Der Name des Testencodes, der einer bestimmten ID zugeordnet ist. Der Name kann z.B. die Person sein, die diesen Code kennt oder die Rolle, die dieser Code übernehmen soll (Garage öffnen). 
+DOCCONTENT -->
+
+<!-- DOC HelpContext="Tastencode ID" -->
+<!-- DOCCONTENT
+Die ID des Tastencodes (= der Speicherplatz), auf welchen der Tastencode gespeichert ist.
+DOCCONTENT -->
+
+<!-- DOC HelpContext="Tastencode" -->
+<!-- DOCCONTENT
+Der eigentliche Tastencode. Es dürfen nur Zeichen verwendet werden, die das entsprechende Keypad auch anbietet.
+DOCCONTENT -->
+
+
+### **Tastencode synchronisieren**
+
+Nach jedem Anlegen/Ändern/Löschen wird der neue Tastencode mit den anderen Geräten automatisch synchronisiert. Da dieser Vorgang komplett asynchron passiert, gibt es keine Garantie und keine Rückmeldung, ob die Synchronisation funktioniert hat. 
+
+Falls auf irgendeinem Gerät ein Tastencode fehlt oder nicht aktuell ist, kann man hier diese Tastencode ID erneut synchronisieren lassen.
+
+<!-- DOC -->
+#### **Tastencode ID synchronisieren**
+
+Durch die Eingabe einer Tastencode ID und das Drücken des Buttons "Synchronisieren" kann hier die Synchronisation eines bestimmten Tastencodes manuell angestoßen werden.
+
+### **Gefährliche Funktionen**
+
+Die Funktionen in diesem Bereich können zum Datenverlust führen, der nicht behebbar ist. Bitte mit Vorsicht nutzen.
+
+<!-- DOC -->
+#### **Alle Tastencodes löschen?**
+
+Mit dieser Funktion werden sämtliche gespeicherten Tastencodes inklusive aller Tastencode Namen unwiderruflich gelöscht.
+
+
+
+
+
+
+
 <!-- DOC -->
 ## Aktionen
 
@@ -618,6 +737,20 @@ Der angelernte NFC-Tag, der dieser Aktion zugeorndet werden soll.
 #### **Information**
 
 Die Zuordnung kann mit einem beliebigen Text benannt werden. Man kann einen Vorschlagstext generieren lassen, indem man den Button "Info holen" betätigt.
+
+<!-- DOC HelpContext="KEY-Seite" -->
+## **Keypad**
+
+Erscheint nur, wenn bei Keypad eine entscprechende Hardware ausgewählt wurde.
+
+Im oberen Bereich können bereits angelernte Tastencodes gesucht werden. So kann man überprüfen, welche Tastencodes schon bekannt sind. 
+
+Diese Suchfunktionalität ist leider vollkommen von der Übertragungs-Infrastruktuktur der ETS abhängig, die wiederum von der Topologie und den verwendeten Schnittstellen und Linienkopplern abhängt. Schlagwort hier ist die APDU des Übertragungsweges (es würde zu weit führen, das hier auszuführen - siehe KNX-User-Forum). Für diese Funktion wird eine APDU vom 203 benötigt. Wenn nur eine kleinere APDU verfügbar ist, sollte die Suche nicht verwendet werden.
+
+Im unteren Bereich können definierte Tastencodes zu Aktionen zugeordnet werden. Dieser Bereich kann unabhängig von der Übertragungs-Infrastruktur verwendet werden. 
+
+<!-- DOCEND -->
+
 
 
 

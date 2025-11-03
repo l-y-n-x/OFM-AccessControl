@@ -9,7 +9,6 @@
             <ParameterTypes>
               <ParameterType Id="%AID%_PT-BTNInputs" Name="BTNInputs">
                 <TypeRestriction Base="Value" SizeInBit="16">
-                  <Enumeration Text="Externes KO" Value="0" Id="%ENID%" />
                   <Enumeration Text="Touch-Front: Taste links" Value="71" Id="%ENID%" />
                   <Enumeration Text="Touch-Front: Taste rechts" Value="72" Id="%ENID%" />
                   <Enumeration Text="Binäreingang A" Value="86" Id="%ENID%" />
@@ -43,8 +42,8 @@
                   <Enumeration Text="Passwort ändern" Value="2" Id="%ENID%" />
                 </TypeRestriction>
               </ParameterType>
-              <ParameterType Id="%AID%_PT-Text16Byte" Name="Text16Byte">
-                <TypeText SizeInBit="128" />
+              <ParameterType Id="%AID%_PT-Text15Byte" Name="Text15Byte">
+                <TypeText SizeInBit="120" />
               </ParameterType>
               <ParameterType Id="%AID%_PT-DataBlock" Name="DataBlock">
                 <TypeText SizeInBit="65536" />
@@ -67,11 +66,24 @@
                   <Enumeration Text="löschen" Value="2" Id="%ENID%" />
                 </TypeRestriction>
               </ParameterType>
+              <ParameterType Id="%AID%_PT-KeypadEdit" Name="KeypadEdit">
+                <TypeRestriction Base="Value" SizeInBit="2" UIHint="DropDown">
+                  <Enumeration Text="anlegen" Value="3" Id="%ENID%" />
+                  <Enumeration Text="ändern" Value="1" Id="%ENID%" />
+                  <Enumeration Text="löschen" Value="2" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
               <ParameterType Id="%AID%_PT-NfcScanner" Name="NfcScanner">
                 <TypeRestriction Base="Value" SizeInBit="2" UIHint="DropDown">
                   <Enumeration Text="Kein NFC" Value="0" Id="%ENID%" />
                   <Enumeration Text="Schaltereinsatz mit NFC" Value="1" Id="%ENID%" />
                   <Enumeration Text="Externer NFC-Leser" Value="2" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+              <ParameterType Id="%AID%_PT-Keypad" Name="Keypad">
+                <TypeRestriction Base="Value" SizeInBit="2" UIHint="DropDown">
+                  <Enumeration Text="Kein Keypad" Value="0" Id="%ENID%" />
+                  <Enumeration Text="Keypad von AB-Tools" Value="1" Id="%ENID%" />
                 </TypeRestriction>
               </ParameterType>
               <ParameterType Id="%AID%_PT-FingerprintScanner" Name="FingerprintScanner">
@@ -121,12 +133,6 @@
               <ParameterType Id="%AID%_PT-FingerId" Name="FingerId">
                 <TypeNumber SizeInBit="16" Type="unsignedInt" minInclusive="0" maxInclusive="1499" />
               </ParameterType>
-              <ParameterType Id="%AID%_PT-NfcId" Name="NfcId">
-                <TypeNumber SizeInBit="16" Type="unsignedInt" minInclusive="0" maxInclusive="1499" />
-              </ParameterType>
-              <ParameterType Id="%AID%_PT-NfcKey" Name="NfcKey">
-                <TypeText SizeInBit="160" />
-              </ParameterType>
               <ParameterType Id="%AID%_PT-Action" Name="Action">
                 <TypeNumber SizeInBit="16" Type="unsignedInt" minInclusive="0" maxInclusive="%N%" />
               </ParameterType>
@@ -164,8 +170,8 @@
               <Parameter Id="%AID%_P-%T%000029" Name="DeleteNfcId" ParameterType="%AID%_PT-NfcId" Text="Tag ID" Value="0" />
               <Parameter Id="%AID%_P-%T%000015" Name="ResetScanner" ParameterType="%AID%_PT-OnOffYesNo" Text="Alle Finger löschen?" Value="0" />
               <Parameter Id="%AID%_P-%T%000020" Name="PasswordOption" ParameterType="%AID%_PT-PasswordOption" Text="Passwort" Value="0" />
-              <Parameter Id="%AID%_P-%T%000021" Name="PasswordNew" ParameterType="%AID%_PT-Text16Byte" Text="Neues Passwort" Value="" />
-              <Parameter Id="%AID%_P-%T%000022" Name="PasswordOld" ParameterType="%AID%_PT-Text16Byte" Text="Altes Passwort" Value="" />
+              <Parameter Id="%AID%_P-%T%000021" Name="PasswordNew" ParameterType="%AID%_PT-Text15Byte" Text="Neues Passwort" Value="" />
+              <Parameter Id="%AID%_P-%T%000022" Name="PasswordOld" ParameterType="%AID%_PT-Text15Byte" Text="Altes Passwort" Value="" />
               <Parameter Id="%AID%_P-%T%000023" Name="PasswardAlreadySet" ParameterType="%AID%_PT-OnOffYesNo" Text="Passwort bereits gesetzt" Value="0" Access="None" />
               <Parameter Id="%AID%_P-%T%000024" Name="SyncFingerIdR503" ParameterType="%AID%_PT-FingerIdR503" Text="Finger ID synchronisieren" Value="0" />
               <Parameter Id="%AID%_P-%T%000025" Name="SyncFingerIdR503S" ParameterType="%AID%_PT-FingerIdR503S" Text="Finger ID synchronisieren" Value="0" />
@@ -174,23 +180,30 @@
               <Parameter Id="%AID%_P-%T%000035" Name="ResetNfc" ParameterType="%AID%_PT-OnOffYesNo" Text="Alle NFC-Tags löschen?" Value="0" />
               <Parameter Id="%AID%_P-%T%000036" Name="FingerEdit" ParameterType="%AID%_PT-FingerEdit" Text="Finger" Value="0" />
               <Parameter Id="%AID%_P-%T%000037" Name="NfcEdit" ParameterType="%AID%_PT-NfcEdit" Text="NFC-Tag" Value="0" />
-              <Union SizeInBit="48">
+              <Parameter Id="%AID%_P-%T%000040" Name="KeypadEdit" ParameterType="%AID%_PT-KeypadEdit" Text="Tastencode" Value="1" />
+              <Parameter Id="%AID%_P-%T%000041" Name="ResetKey" ParameterType="%AID%_PT-OnOffYesNo" Text="Alle Tastencodes löschen?" Value="0" />
+              <Parameter Id="%AID%_P-%T%000042" Name="SyncKeyId" ParameterType="%AID%_PT-KeyId" Text="Tastencode ID synchronisieren" Value="0" />
+              <Parameter Id="%AID%_P-%T%000043" Name="EnrollKeypadName" ParameterType="%AID%_PT-Text28Byte" Text="Tastencode Name" Value="" />
+              <Parameter Id="%AID%_P-%T%000044" Name="EnrollKeypadId" ParameterType="%AID%_PT-NfcId" Text="Tastencode ID" Value="0" />
+              <Parameter Id="%AID%_P-%T%000045" Name="EnrollKeypadKeycode" ParameterType="%AID%_PT-NfcKey" Text="Tastencode" Value="" />
+              <Parameter Id="%AID%_P-%T%000046" Name="DeleteKeypadId" ParameterType="%AID%_PT-NfcId" Text="Tastencode ID" Value="0" />
+              <Union SizeInBit="56">
                 <Memory CodeSegment="%AID%_RS-04-00000" Offset="0" BitOffset="0" />
                 <Parameter Id="%AID%_UP-%T%000001" Name="VisibleActions" ParameterType="%AID%_PT-FINNumChannels" Offset="0" BitOffset="0" Text="Verfügbare Aktionen" Value="3" SuffixText=" von %N%" />
                 <Parameter Id="%AID%_UP-%T%000008" Name="AuthDelayBase" ParameterType="%AID%_PT-DelayBase" Offset="2" BitOffset="0" Text="Zeitbasis" Value="0" />
                 <Parameter Id="%AID%_UP-%T%000009" Name="AuthDelayTime" ParameterType="%AID%_PT-DelayTime" Offset="2" BitOffset="2" Text="Zeit" Value="5" />
                 <Parameter Id="%AID%_UP-%T%000002" Name="FingerprintScanner" ParameterType="%AID%_PT-FingerprintScanner" Offset="4" BitOffset="0" Text="Fingerprint Scanner" Value="0" />
                 <Parameter Id="%AID%_UP-%T%000010" Name="FingerprintColor" ParameterType="%AID%_PT-FingerprintColor" Offset="4" BitOffset="2" Text="Blinkfarbe während der Autorisierung" Value="2" Access="None" />
-                <Parameter Id="%AID%_UP-%T%000028" Name="ScanMode" ParameterType="%AID%_PT-ScanMode" Offset="4" BitOffset="4" Text="Fingerabfrage" Value="0" />
-                <Parameter Id="%AID%_UP-%T%000034" Name="NfcScanner" ParameterType="%AID%_PT-NfcScanner" Offset="4" BitOffset="5" Text="NFC Scanner" Value="0" />
+                <Parameter Id="%AID%_UP-%T%000028" Name="ScanMode" ParameterType="%AID%_PT-ScanMode" Offset="4" BitOffset="5" Text="Fingerabfrage" Value="0" />
+                <Parameter Id="%AID%_UP-%T%000034" Name="NfcScanner" ParameterType="%AID%_PT-NfcScanner" Offset="4" BitOffset="6" Text="NFC Scanner" Value="0" />
+                <Parameter Id="%AID%_UP-%T%000011" Name="EnableRawData" Offset="5" BitOffset="0" ParameterType="%AID%_PT-OnOffYesNo" Text="Rohdaten auf den Bus senden" Value="0" />
+                <Parameter Id="%AID%_UP-%T%000012" Name="EnableSync" Offset="5" BitOffset="1" ParameterType="%AID%_PT-OnOffYesNo" Text="Synchronisation mehrerer Geräte" Value="0" />
+                <Parameter Id="%AID%_UP-%T%000013" Name="EnableExternalControl" Offset="5" BitOffset="2" ParameterType="%AID%_PT-OnOffYesNo" Text="Externe Kontrolle ermöglichen" Value="0" />
+                <Parameter Id="%AID%_UP-%T%000014" Name="EnableAccessData" Offset="5" BitOffset="3" ParameterType="%AID%_PT-OnOffYesNo" Text="Zutrittsdaten-KOs aktivieren" Value="0" />
+                <Parameter Id="%AID%_UP-%T%000019" Name="EnableTouchPcb" Offset="5" BitOffset="4" ParameterType="%AID%_PT-OnOffYesNo" Text="Touch-Frontplatine vorhanden" Value="0" />
+                <Parameter Id="%AID%_UP-%T%000039" Name="Keypad" ParameterType="%AID%_PT-Keypad" Offset="5" BitOffset="5" Text="Keypad" Value="0" />
                 <!-- 1 bits free -->
-                <Parameter Id="%AID%_UP-%T%000011" Name="EnableRawData" Offset="4" BitOffset="0" ParameterType="%AID%_PT-OnOffYesNo" Text="Rohdaten auf den Bus senden" Value="0" />
-                <Parameter Id="%AID%_UP-%T%000012" Name="EnableSync" Offset="4" BitOffset="1" ParameterType="%AID%_PT-OnOffYesNo" Text="Synchronisation mehrerer Geräte" Value="0" />
-                <Parameter Id="%AID%_UP-%T%000013" Name="EnableExternalControl" Offset="4" BitOffset="2" ParameterType="%AID%_PT-OnOffYesNo" Text="Externe Kontrolle ermöglichen" Value="0" />
-                <Parameter Id="%AID%_UP-%T%000014" Name="EnableAccessData" Offset="4" BitOffset="3" ParameterType="%AID%_PT-OnOffYesNo" Text="Zutrittsdaten-KOs aktivieren" Value="0" />
-                <Parameter Id="%AID%_UP-%T%000019" Name="EnableTouchPcb" Offset="4" BitOffset="4" ParameterType="%AID%_PT-OnOffYesNo" Text="Touch-Frontplatine vorhanden" Value="0" />
-                <!-- 3 bits free -->
-                <Parameter Id="%AID%_UP-%T%000027" Name="SyncDelay" Offset="5" BitOffset="0" ParameterType="%AID%_PT-SyncDelay" Text="Verzögerung zwischen Sync-Telegrammen" Value="100" />
+                <Parameter Id="%AID%_UP-%T%000027" Name="SyncDelay" Offset="6" BitOffset="0" ParameterType="%AID%_PT-SyncDelay" Text="Verzögerung zwischen Sync-Telegrammen" Value="100" />
               </Union>
             </Parameters>
             <ParameterRefs>
@@ -232,6 +245,14 @@
               <ParameterRef Id="%AID%_P-%T%000036_R-%T%00003601" RefId="%AID%_P-%T%000036" />
               <ParameterRef Id="%AID%_P-%T%000037_R-%T%00003701" RefId="%AID%_P-%T%000037" />
               <ParameterRef Id="%AID%_P-%T%000038_R-%T%00003801" RefId="%AID%_P-%T%000038" />
+              <ParameterRef Id="%AID%_UP-%T%000039_R-%T%00003901" RefId="%AID%_UP-%T%000039" />
+              <ParameterRef Id="%AID%_P-%T%000040_R-%T%00004001" RefId="%AID%_P-%T%000040" />
+              <ParameterRef Id="%AID%_P-%T%000041_R-%T%00004101" RefId="%AID%_P-%T%000041" />
+              <ParameterRef Id="%AID%_P-%T%000042_R-%T%00004201" RefId="%AID%_P-%T%000042" />
+              <ParameterRef Id="%AID%_P-%T%000043_R-%T%00004301" RefId="%AID%_P-%T%000043" />
+              <ParameterRef Id="%AID%_P-%T%000044_R-%T%00004401" RefId="%AID%_P-%T%000044" />
+              <ParameterRef Id="%AID%_P-%T%000045_R-%T%00004501" RefId="%AID%_P-%T%000045" />
+              <ParameterRef Id="%AID%_P-%T%000046_R-%T%00004601" RefId="%AID%_P-%T%000046" />
             </ParameterRefs>
             <ParameterCalculations>
               <ParameterCalculation Id="%AID%_PC-%T%000001" Language="JavaScript" Name="ACC_ClearFieldContent" LRTransformationFunc="LOG_Nop" RLTransformationFunc="LOG_ClearContent" >
@@ -271,17 +292,6 @@
  
               <ComObject Id="%AID%_O-%T%000021" Name="FingerEnrollNext" Number="22" ObjectSize="1 Bit" Text="Finger: Lerne an - Nächste freie ID" FunctionText="Trigger" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
               <ComObject Id="%AID%_O-%T%000022" Name="FingerEnrollId" Number="23" ObjectSize="2 Bytes" Text="Finger: Lerne an - ID (verfügbare Slots: R503S: 0-149, R503: 0-199, R503Pro: 0-1499)" FunctionText="Trigger" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-1" />
-              <!-- <ComObject Id="%AID%_O-%T%000023" Name="FingerEnrollData" Number="23" ObjectSize="4 Bytes" Text="Finger: Lerne an - Zutrittsdaten (verfügbare Slots: R503S: 0-149, R503: 0-199, R503Pro: 0-1499)" FunctionText="Trigger" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-15-0" /> -->
-              <!-- <ComObject Id="%AID%_O-%T%000024" Name="FingerEnrollSuccess" Number="24" ObjectSize="1 Bit" Text="Finger: Anlernen - Erfolg" FunctionText="Status" ReadFlag="Disabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" /> -->
-              <!-- <ComObject Id="%AID%_O-%T%000025" Name="FingerEnrollSuccessId" Number="25" ObjectSize="2 Bytes" Text="Finger: Anlernen - Erfolg ID" FunctionText="Status" ReadFlag="Disabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-1" /> -->
-              <!-- <ComObject Id="%AID%_O-%T%000026" Name="FingerEnrollSuccessData" Number="26" ObjectSize="4 Bytes" Text="Finger: Anlernen - Zutrittsdaten" FunctionText="Status" ReadFlag="Disabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-15-0" /> -->
-              <!-- <ComObject Id="%AID%_O-%T%000027" Name="FingerEnrollFailedId" Number="27" ObjectSize="2 Bytes" Text="Finger: Anlernen - Fehlgeschlagen ID" FunctionText="Status" ReadFlag="Disabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-1" /> -->
-              <!-- <ComObject Id="%AID%_O-%T%000031" Name="FingerDeleteId" Number="31" ObjectSize="2 Bytes" Text="Finger: Lösche - ID" FunctionText="Trigger" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-1" /> -->
-              <!-- <ComObject Id="%AID%_O-%T%000032" Name="FingerDeleteData" Number="32" ObjectSize="4 Bytes" Text="Finger: Lösche - Zutrittsdaten" FunctionText="Trigger" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-15-0" /> -->
-              <!-- <ComObject Id="%AID%_O-%T%000033" Name="FingerDeleteSuccess" Number="33" ObjectSize="1 Bit" Text="Finger: Löschen - Erfolg" FunctionText="Status" ReadFlag="Disabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" /> -->
-              <!-- <ComObject Id="%AID%_O-%T%000034" Name="FingerDeleteSuccessId" Number="34" ObjectSize="2 Bytes" Text="Finger: Löschen - Erfolg ID" FunctionText="Status" ReadFlag="Disabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-1" /> -->
-              <!-- <ComObject Id="%AID%_O-%T%000035" Name="FingerDeleteSuccessData" Number="35" ObjectSize="4 Bytes" Text="Finger: Löschen - Zutrittsdaten" FunctionText="Status" ReadFlag="Disabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-15-0" /> -->
-              <!-- <ComObject Id="%AID%_O-%T%000036" Name="FingerDeleteFailedId" Number="36" ObjectSize="2 Bytes" Text="Finger: Löschen - Fehlgeschlagen ID" FunctionText="Status" ReadFlag="Disabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-1" /> -->
 
               <!-- Wrong KO numbers - just for testing -->
               <ComObject Id="%AID%_O-%T%000010" Name="NfcScanSuccess" Number="25" ObjectSize="1 Bit" Text="NFC: Scan - Erfolg" FunctionText="Status" ReadFlag="Disabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
@@ -289,27 +299,12 @@
               <!-- <ComObject Id="%AID%_O-%T%000063" Name="NfcScanSuccessData" Number="163" ObjectSize="4 Bytes" Text="NFC: Scan - Zutrittsdaten" FunctionText="Status" ReadFlag="Disabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-15-0" /> -->
               <ComObject Id="%AID%_O-%T%000015" Name="NfcEnrollNext" Number="27" ObjectSize="1 Bit" Text="NFC: Lerne an - Nächste freie ID" FunctionText="Trigger" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
               <ComObject Id="%AID%_O-%T%000028" Name="NfcEnrollId" Number="28" ObjectSize="2 Bytes" Text="NFC: Lerne an - ID (0-1499)" FunctionText="Trigger" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-1" />
-              <!-- <ComObject Id="%AID%_O-%T%000066" Name="NfcEnrollData" Number="166" ObjectSize="4 Bytes" Text="NFC: Lerne an - Zutrittsdaten (0-1499)" FunctionText="Trigger" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-15-0" /> -->
-              <!-- <ComObject Id="%AID%_O-%T%000067" Name="NfcEnrollSuccess" Number="167" ObjectSize="1 Bit" Text="NFC: Anlernen - Erfolg" FunctionText="Status" ReadFlag="Disabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" /> -->
-              <!-- <ComObject Id="%AID%_O-%T%000068" Name="NfcEnrollSuccessId" Number="168" ObjectSize="2 Bytes" Text="NFC: Anlernen - Erfolg ID" FunctionText="Status" ReadFlag="Disabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-1" /> -->
-              <!-- <ComObject Id="%AID%_O-%T%000069" Name="NfcEnrollSuccessData" Number="169" ObjectSize="4 Bytes" Text="NFC: Anlernen - Zutrittsdaten" FunctionText="Status" ReadFlag="Disabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-15-0" /> -->
-              <!-- <ComObject Id="%AID%_O-%T%000070" Name="NfcEnrollFailedId" Number="170" ObjectSize="2 Bytes" Text="NFC: Anlernen - Fehlgeschlagen ID" FunctionText="Status" ReadFlag="Disabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-1" /> -->
-              <!-- <ComObject Id="%AID%_O-%T%000071" Name="NfcDeleteId" Number="171" ObjectSize="2 Bytes" Text="NFC: Lösche - ID" FunctionText="Trigger" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-1" /> -->
-              <!-- <ComObject Id="%AID%_O-%T%000072" Name="NfcDeleteData" Number="172" ObjectSize="4 Bytes" Text="NFC: Lösche - Zutrittsdaten" FunctionText="Trigger" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-15-0" /> -->
-              <!-- <ComObject Id="%AID%_O-%T%000073" Name="NfcDeleteSuccess" Number="173" ObjectSize="1 Bit" Text="NFC: Löschen - Erfolg" FunctionText="Status" ReadFlag="Disabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" /> -->
-              <!-- <ComObject Id="%AID%_O-%T%000074" Name="NfcDeleteSuccessId" Number="174" ObjectSize="2 Bytes" Text="NFC: Löschen - Erfolg ID" FunctionText="Status" ReadFlag="Disabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-1" /> -->
-              <!-- <ComObject Id="%AID%_O-%T%000075" Name="NfcDeleteSuccessData" Number="175" ObjectSize="4 Bytes" Text="NFC: Löschen - Zutrittsdaten" FunctionText="Status" ReadFlag="Disabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-15-0" /> -->
-              <!-- <ComObject Id="%AID%_O-%T%000076" Name="NfcDeleteFailedId" Number="176" ObjectSize="2 Bytes" Text="NFC: Löschen - Fehlgeschlagen ID" FunctionText="Status" ReadFlag="Disabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-1" /> -->
 
               <ComObject Id="%AID%_O-%T%000051" Name="TouchPcbButtonLeft" Number="51" ObjectSize="1 Bit" Text="Touch-Front: Taste links" FunctionText="Status" ReadFlag="Disabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
               <ComObject Id="%AID%_O-%T%000052" Name="TouchPcbButtonRight" Number="52" ObjectSize="1 Bit" Text="Touch-Front: Taste rechts" FunctionText="Status" ReadFlag="Disabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
               <ComObject Id="%AID%_O-%T%000053" Name="TouchPcbLedRed" Number="53" ObjectSize="1 Bit" Text="Touch-Front: LED rot" FunctionText="Trigger" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
               <ComObject Id="%AID%_O-%T%000054" Name="TouchPcbLedGreen" Number="54" ObjectSize="1 Bit" Text="Touch-Front: LED grün" FunctionText="Trigger" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
 
-              <!-- <ComObject Id="%AID%_O-%T%000042" Name="FingerActionAddId" Number="42" ObjectSize="4 Bytes" Text="Finger: ID zu Aktion hinzufügen" FunctionText="Trigger" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPT-12" /> -->
-              <!-- <ComObject Id="%AID%_O-%T%000043" Name="FingerActionRemoveId" Number="43" ObjectSize="4 Bytes" Text="Finger: ID von Aktion entfernen" FunctionText="Trigger" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPT-12" />               -->
-              <!-- <ComObject Id="%AID%_O-%T%000044" Name="NfcActionAddId" Number="44" ObjectSize="4 Bytes" Text="NFC: ID zu Aktion hinzufügen" FunctionText="Trigger" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPT-12" /> -->
-              <!-- <ComObject Id="%AID%_O-%T%000045" Name="NfcActionRemoveId" Number="45" ObjectSize="4 Bytes" Text="NFC: ID von Aktion entfernen" FunctionText="Trigger" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPT-12" /> -->
             </ComObjectTable>
             <ComObjectRefs>
               <ComObjectRef Id="%AID%_O-%T%000001_R-%T%00000101" RefId="%AID%_O-%T%000001" />
@@ -364,7 +359,7 @@
             </Script>
           </Static>
           <Dynamic>
-            <Channel Id="%AID%_CH-Basic" Name="BasicChannel" Number="1" Text="Zutrittskontrolle" Icon="shield-lock-outline" HelpContext="ACC-Dokumentation">
+            <Channel Id="%AID%_CH-Basic" Name="BasicChannel" Number="%PREFIX%" Text="Zutrittskontrolle" Icon="shield-lock-outline" HelpContext="ACC-Dokumentation">
               <ParameterBlock Id="%AID%_PB-nnn" Name="Basic" Text="Allgemein" Icon="cog-outline" HelpContext="ACC-Dokumentation" ShowInComObjectTree="true">
                 <ParameterSeparator Id="%AID%_PS-nnn" Text="Zutrittskontrolle" UIHint="Headline" />
                 <ParameterSeparator Id="%AID%_PS-nnn" Text="Version: %ModuleVersion%" />
@@ -373,6 +368,7 @@
                 <ParameterSeparator Id="%AID%_PS-nnn" Text="Hardware" UIHint="Headline" />
                 <ParameterRefRef RefId="%AID%_UP-%T%000002_R-%T%00000201" IndentLevel="1" HelpContext="%DOC%" />
                 <ParameterRefRef RefId="%AID%_UP-%T%000034_R-%T%00003401" IndentLevel="1" HelpContext="%DOC%" />
+                <ParameterRefRef RefId="%AID%_UP-%T%000039_R-%T%00003901" IndentLevel="1" HelpContext="%DOC%" />
                 <choose ParamRefId="%AID%_UP-%T%000034_R-%T%00003401">
                   <when test="0">
                     <ParameterRefRef RefId="%AID%_UP-%T%000019_R-%T%00001901" IndentLevel="1" HelpContext="%DOC%" />
@@ -708,10 +704,94 @@
                     </ParameterBlock>
                   </when>
                 </choose>
+
+                <choose ParamRefId="%AID%_UP-%T%000039_R-%T%00003901">
+                  <when test="!=0">
+                    <!-- Keypad -->
+                    <ParameterBlock Id="%AID%_PB-nnn" Icon="dialpad" Text="Keypad" ShowInComObjectTree="true" >  
+
+                      <ParameterSeparator Id="%AID%_PS-nnn" Text="Tastencode bearbeiten" UIHint="Headline" />
+                      <ParameterRefRef RefId="%AID%_P-%T%000040_R-%T%00004001" IndentLevel="1" HelpContext="%DOC%" />
+                      <choose ParamRefId="%AID%_P-%T%000040_R-%T%00004001">
+                        <when test="1 3">
+                          <ParameterRefRef RefId="%AID%_P-%T%000043_R-%T%00004301" IndentLevel="2" HelpContext="%DOC%" />
+                          <ParameterRefRef RefId="%AID%_P-%T%000044_R-%T%00004401" IndentLevel="2" HelpContext="%DOC%" />
+                          <ParameterRefRef RefId="%AID%_P-%T%000045_R-%T%00004501" IndentLevel="2" HelpContext="%DOC%" />
+                        </when>
+                        <when test="2">
+                          <ParameterRefRef RefId="%AID%_P-%T%000046_R-%T%00004601" IndentLevel="2" HelpContext="%DOC%" />
+                        </when>
+                      </choose>
+                      <ParameterBlock Id="%AID%_PB-nnn" Inline="true" Layout="Grid">
+                        <Rows>
+                          <Row Id="%AID%_PB-nnn_R-1" />
+                        </Rows>
+                        <Columns>
+                          <Column Id="%AID%_PB-nnn_C-1" Width="45%" />
+                          <Column Id="%AID%_PB-nnn_C-2" Width="27%" />
+                        </Columns>
+                          <choose ParamRefId="%AID%_P-%T%000040_R-%T%00004001">
+                          <when test="1">
+                            <Button Id="%AID%_B-%T%940002" Text="Ändern" Cell="1,2" Name="changeKeypad" EventHandler="ACC_changeKeypad" EventHandlerOnline="ConnectionOriented" />
+                          </when>
+                          <when test="2">
+                            <Button Id="%AID%_B-%T%940003" Text="Löschen" Cell="1,2" Name="deleteKeypad" EventHandler="ACC_deleteKeypad" EventHandlerOnline="ConnectionOriented" />
+                          </when>
+                          <when test="3">
+                            <Button Id="%AID%_B-%T%940005" Text="Anlegen" Cell="1,2" Name="changeKeypad" EventHandler="ACC_changeKeypad" EventHandlerOnline="ConnectionOriented" />
+                          </when>
+                        </choose>
+                      </ParameterBlock>
+
+
+                      <choose ParamRefId="%AID%_UP-%T%000012_R-%T%00001201">
+                        <when test="1">
+                          <ParameterSeparator Id="%AID%_PS-nnn" Text="" UIHint="HorizontalRuler" />
+                          <ParameterSeparator Id="%AID%_PS-nnn" Text="Keypad synchronisieren" UIHint="Headline" />
+                          <ParameterSeparator Id="%AID%_PS-nnn" Text="Nach jeder Änderung wird der neue Tastencode automatisch synchronisiert. Zusätzlich kann hier die Synchronisation eines bestimmten Tastencodes auch manuell angestoßen werden." UIHint="Information" />
+                          <ParameterRefRef RefId="%AID%_P-%T%000042_R-%T%00004201" IndentLevel="2" HelpContext="%DOC%" />
+                          <Button Id="%AID%_B-%T%950004" Text="Synchronisieren" Name="syncKeypad" EventHandler="ACC_syncKeypad" EventHandlerOnline="ConnectionOriented" />
+                        </when>
+                      </choose>
+
+                      <ParameterSeparator Id="%AID%_PS-nnn" Text="" UIHint="HorizontalRuler" />
+                      <ParameterSeparator Id="%AID%_PS-nnn" Text="Gefährliche Funktionen" UIHint="Headline" />
+                      <ParameterRefRef RefId="%AID%_P-%T%000041_R-%T%00004101" IndentLevel="1" HelpContext="%DOC%" />
+                      <choose ParamRefId="%AID%_P-%T%000041_R-%T%00004101">
+                        <when test="1">
+                          <ParameterSeparator Id="%AID%_PS-nnn" Text="Wenn Sie diese Funktion ausführen, werden alle gespeicherten Tastencodes gelöscht und müssen neu angelernt werden." UIHint="Error" />
+                          <Button Id="%AID%_B-%T%94007" Text="Jetzt löschen" Name="resetKeypad" EventHandler="ACC_resetKeypad" EventHandlerOnline="ConnectionOriented" />
+                        </when>
+                      </choose>
+
+                      <!-- Raw data -->
+                      <!-- <choose ParamRefId="%AID%_UP-%T%000011_R-%T%00001101"> -->
+                        <!-- <when test="1"> -->
+                          <!-- NFC: Scan - Erfolg -->
+                          <!-- <ComObjectRefRef RefId="%AID%_O-%T%000010_R-%T%00001001" /> -->
+                          <!-- NFC: Scan - ID -->
+                          <!-- <ComObjectRefRef RefId="%AID%_O-%T%000014_R-%T%00001401" /> -->
+                        <!-- </when> -->
+                      <!-- </choose> -->
+
+                      <!-- External control -->
+                      <!-- <choose ParamRefId="%AID%_UP-%T%000013_R-%T%00001301"> -->
+                        <!-- <when test="1"> -->
+                          <!-- NFC: Lerne an - Nächste freie ID -->
+                          <!-- <ComObjectRefRef RefId="%AID%_O-%T%000015_R-%T%00001501" /> -->
+                          <!-- NFC: Lerne an - ID -->
+                          <!-- <ComObjectRefRef RefId="%AID%_O-%T%000028_R-%T%00002801" /> -->
+                        <!-- </when> -->
+                      <!-- </choose> -->
+                    </ParameterBlock>
+                  </when>
+                </choose>
+
               </ParameterBlock>
               <op:include href="Action.share.xml" xpath="//Dynamic/ChannelIndependentBlock/*" prefix="ACC" />
               <op:include href="FingerAction.share.xml" xpath="//Dynamic/ChannelIndependentBlock/*" prefix="FINACT" />
               <op:include href="NfcAction.share.xml" xpath="//Dynamic/ChannelIndependentBlock/*" prefix="NFCACT" />
+              <op:include href="KeypadAction.share.xml" xpath="//Dynamic/ChannelIndependentBlock/*" prefix="KEYACT" />
             </Channel>
           </Dynamic>
         </ApplicationProgram>

@@ -8,63 +8,63 @@
           <Static>
             <ParameterTypes>
               <!-- Number of channels (module specific) -->
-              <ParameterType Id="%AID%_PT-NFCACTNumChannels" Name="NFCACTNumChannels">
+              <ParameterType Id="%AID%_PT-KEYACTNumChannels" Name="KEYACTNumChannels">
                 <TypeNumber SizeInBit="16" Type="unsignedInt" minInclusive="1" maxInclusive="%N%" />
               </ParameterType>
-              <ParameterType Id="%AID%_PT-NfcId" Name="NfcId">
+              <ParameterType Id="%AID%_PT-KeyId" Name="KeyId">
                 <TypeNumber SizeInBit="16" Type="unsignedInt" minInclusive="0" maxInclusive="1499" />
               </ParameterType>
-              <ParameterType Id="%AID%_PT-NfcKey" Name="NfcKey">
+              <ParameterType Id="%AID%_PT-KeyKey" Name="KeyKey">
                 <TypeText SizeInBit="160" />
               </ParameterType>
             </ParameterTypes>
             <Parameters>
               <Union SizeInBit="16">
                 <Memory CodeSegment="%AID%_RS-04-00000" Offset="0" BitOffset="0" />
-                <Parameter Id="%AID%_UP-%T%920001" Name="NfcActionCount" ParameterType="%AID%_PT-FINACTNumChannels" Offset="0" BitOffset="0" Text="Verfügbare Zuordnungen" Value="1" SuffixText=" von %N%" />
+                <Parameter Id="%AID%_UP-%T%940001" Name="KeyActionCount" ParameterType="%AID%_PT-FINACTNumChannels" Offset="0" BitOffset="0" Text="Verfügbare Zuordnungen" Value="1" SuffixText=" von %N%" />
               </Union>
-              <Parameter Id="%AID%_P-%T%920003" Name="NfcName" ParameterType="%AID%_PT-Text28Byte" Text="Tag Name" Value="" />
-              <Parameter Id="%AID%_P-%T%920005" Name="NfcId" ParameterType="%AID%_PT-NfcId" Text="Tag ID" Value="0" />
-              <Parameter Id="%AID%_P-%T%920006" Name="NfcActionLine" ParameterType="%AID%_PT-FINACTNumChannels" Text="Zeile für Zuweisung" Value="1" />
-              <Parameter Id="%AID%_P-%T%920007" Name="NumberSearchResultsOverflow" ParameterType="%AID%_PT-ValueDpt5" Text="Anzahl Suchresultate" Value="0" Access="None" />
-              <Parameter Id="%AID%_P-%T%920008" Name="NumberSearchResultsText" ParameterType="%AID%_PT-Text5Byte" Text="Anzahl Suchresultate (als Text)" Value="0" Access="None" />
-              <Parameter Id="%AID%_P-%T%920009" Name="NumberSearchResultsToDisplay" ParameterType="%AID%_PT-ValueDpt5" Text="Anzahl angezeigter Resultate" Value="0" Access="None" />
+              <Parameter Id="%AID%_P-%T%940003" Name="KeyName" ParameterType="%AID%_PT-Text28Byte" Text="Tastencode Name" Value="" />
+              <Parameter Id="%AID%_P-%T%940005" Name="KeyId" ParameterType="%AID%_PT-KeyId" Text="Tastencode ID" Value="0" />
+              <Parameter Id="%AID%_P-%T%940006" Name="KeyActionLine" ParameterType="%AID%_PT-FINACTNumChannels" Text="Zeile für Zuweisung" Value="1" />
+              <Parameter Id="%AID%_P-%T%940007" Name="NumberSearchResultsOverflow" ParameterType="%AID%_PT-ValueDpt5" Text="Anzahl Suchresultate" Value="0" Access="None" />
+              <Parameter Id="%AID%_P-%T%940008" Name="NumberSearchResultsText" ParameterType="%AID%_PT-Text5Byte" Text="Anzahl Suchresultate (als Text)" Value="0" Access="None" />
+              <Parameter Id="%AID%_P-%T%940009" Name="NumberSearchResultsToDisplay" ParameterType="%AID%_PT-ValueDpt5" Text="Anzahl angezeigter Resultate" Value="0" Access="None" />
 
             </Parameters>
             <ParameterRefs>
-              <ParameterRef Id="%AID%_UP-%T%920001_R-%T%92000101" RefId="%AID%_UP-%T%920001" />
-              <ParameterRef Id="%AID%_P-%T%920003_R-%T%92000301" RefId="%AID%_P-%T%920003" />
-              <ParameterRef Id="%AID%_P-%T%920005_R-%T%92000501" RefId="%AID%_P-%T%920005" />
-              <ParameterRef Id="%AID%_P-%T%920006_R-%T%92000601" RefId="%AID%_P-%T%920006" />
-              <ParameterRef Id="%AID%_P-%T%920007_R-%T%92000701" RefId="%AID%_P-%T%920007" />
-              <ParameterRef Id="%AID%_P-%T%920008_R-%T%92000801" RefId="%AID%_P-%T%920008" />
-              <ParameterRef Id="%AID%_P-%T%920009_R-%T%92000901" RefId="%AID%_P-%T%920009" />
+              <ParameterRef Id="%AID%_UP-%T%940001_R-%T%94000101" RefId="%AID%_UP-%T%940001" />
+              <ParameterRef Id="%AID%_P-%T%940003_R-%T%94000301" RefId="%AID%_P-%T%940003" />
+              <ParameterRef Id="%AID%_P-%T%940005_R-%T%94000501" RefId="%AID%_P-%T%940005" />
+              <ParameterRef Id="%AID%_P-%T%940006_R-%T%94000601" RefId="%AID%_P-%T%940006" />
+              <ParameterRef Id="%AID%_P-%T%940007_R-%T%94000701" RefId="%AID%_P-%T%940007" />
+              <ParameterRef Id="%AID%_P-%T%940008_R-%T%94000801" RefId="%AID%_P-%T%940008" />
+              <ParameterRef Id="%AID%_P-%T%940009_R-%T%94000901" RefId="%AID%_P-%T%940009" />
 
             </ParameterRefs>
             <ParameterCalculations>
-              <ParameterCalculation Id="%AID%_PC-%T%920002" Language="JavaScript" Name="ClearSearchResult" RLTransformationFunc="ACC_clearSearchResults" LRTransformationFunc="ACC_dummy">
+              <ParameterCalculation Id="%AID%_PC-%T%940002" Language="JavaScript" Name="ClearSearchResult" RLTransformationFunc="ACC_clearSearchResults" LRTransformationFunc="ACC_dummy">
                 <LParameters>
-                  <ParameterRefRef RefId="%AID%_P-%T%920007_R-%T%92000701" AliasName="SearchResults" />
-                  <ParameterRefRef RefId="%AID%_P-%T%920009_R-%T%92000901" AliasName="SearchResultsDisplay" />
+                  <ParameterRefRef RefId="%AID%_P-%T%940007_R-%T%94000701" AliasName="SearchResults" />
+                  <ParameterRefRef RefId="%AID%_P-%T%940009_R-%T%94000901" AliasName="SearchResultsDisplay" />
                 </LParameters>
                 <RParameters>
-                  <ParameterRefRef RefId="%AID%_P-%T%920003_R-%T%92000301" AliasName="PersonName" />
-                  <ParameterRefRef RefId="%AID%_P-%T%920005_R-%T%92000501" AliasName="NfcId" />
+                  <ParameterRefRef RefId="%AID%_P-%T%940003_R-%T%94000301" AliasName="PersonName" />
+                  <ParameterRefRef RefId="%AID%_P-%T%940005_R-%T%94000501" AliasName="KeyId" />
                 </RParameters>
               </ParameterCalculation>
             </ParameterCalculations>
           </Static>
           <Dynamic>
             <ChannelIndependentBlock>
-              <choose ParamRefId="%AID%_UP-%T%000034_R-%T%00003401">
+              <choose ParamRefId="%AID%_UP-%T%000039_R-%T%00003901">
                 <when test="!=0">
-                  <ParameterBlock Id="%AID%_PB-nnn" Name="NfcAction" Text="NFC" Icon="nfc-variant" HelpContext="ACC-NFC-Seite" >
+                  <ParameterBlock Id="%AID%_PB-nnn" Name="KeyAction" Text="Keypad" Icon="dialpad" HelpContext="ACC-KEY-Seite" >
                     <!-- invisible, but necessary -->
-                    <ParameterRefRef RefId="%AID%_P-%T%920007_R-%T%92000701" />
-                    <ParameterRefRef RefId="%AID%_P-%T%920008_R-%T%92000801" />
-                    <ParameterRefRef RefId="%AID%_P-%T%920009_R-%T%92000901" />
+                    <ParameterRefRef RefId="%AID%_P-%T%940007_R-%T%94000701" />
+                    <ParameterRefRef RefId="%AID%_P-%T%940008_R-%T%94000801" />
+                    <ParameterRefRef RefId="%AID%_P-%T%940009_R-%T%94000901" />
 
-                    <ParameterSeparator Id="%AID%_PS-nnn" Text="Personen und NFC-Tag suchen" UIHint="Headline" />
+                    <ParameterSeparator Id="%AID%_PS-nnn" Text="Personen und Tastencodes suchen" UIHint="Headline" />
                     <ParameterBlock Id="%AID%_PB-nnn" Inline="true" Layout="Grid">
                       <Rows>
                         <Row Id="%AID%_PB-nnn_R-1" />
@@ -75,14 +75,14 @@
                         <Column Id="%AID%_PB-nnn_C-2" Width="28%" />
                         <Column Id="%AID%_PB-nnn_C-3" Width="30%" />
                       </Columns>
-                      <ParameterSeparator Id="%AID%_PS-nnn" Text="  Tag Name" Cell="1,1" />
-                      <ParameterRefRef RefId="%AID%_P-%T%920003_R-%T%92000301" Cell="1,2" />
-                      <Button Id="%AID%_B-%T%930001" Text="ID suchen" EventHandler="ACC_searchNfcId" EventHandlerOnline="ConnectionOriented" Cell="1,3" />
-                      <ParameterSeparator Id="%AID%_PS-nnn" Text="  Tag ID" Cell="2,1" />
-                      <ParameterRefRef RefId="%AID%_P-%T%920005_R-%T%92000501" Cell="2,2" />
-                      <Button Id="%AID%_B-%T%930002" Text="Tag suchen" EventHandler="ACC_searchNfcName" EventHandlerOnline="ConnectionOriented" Cell="2,3" />
+                      <ParameterSeparator Id="%AID%_PS-nnn" Text="  Tastencode Name" Cell="1,1" />
+                      <ParameterRefRef RefId="%AID%_P-%T%940003_R-%T%94000301" Cell="1,2" />
+                      <Button Id="%AID%_B-%T%950001" Text="ID suchen" EventHandler="ACC_searchKeypadId" EventHandlerOnline="ConnectionOriented" Cell="1,3" />
+                      <ParameterSeparator Id="%AID%_PS-nnn" Text="  Tastencode ID" Cell="2,1" />
+                      <ParameterRefRef RefId="%AID%_P-%T%940005_R-%T%94000501" Cell="2,2" />
+                      <Button Id="%AID%_B-%T%950002" Text="Tastencode suchen" EventHandler="ACC_searchKeypadName" EventHandlerOnline="ConnectionOriented" Cell="2,3" />
 
-                      <!-- <Button Id="%AID%_B-%T%920003" Text="zuweisen" Cell="1,5" EventHandler="ACC_assignFingerId" /> -->
+                      <!-- <Button Id="%AID%_B-%T%940003" Text="zuweisen" Cell="1,5" EventHandler="ACC_assignFingerId" /> -->
                     </ParameterBlock>
 
                     <!-- No search results available -->
@@ -97,15 +97,15 @@
                         <Column Id="%AID%_PB-nnn_C-3" Width="45%" />
                       </Columns>
                       <ParameterSeparator Id="%AID%_PS-nnn" Text="Suchergebnis" UIHint="Headline" Cell="1,1" />
-                      <ParameterSeparator Id="%AID%_PS-nnn" Text="Tag" UIHint="Headline" Cell="1,2" />
+                      <ParameterSeparator Id="%AID%_PS-nnn" Text="Code ID" UIHint="Headline" Cell="1,2" />
                       <ParameterSeparator Id="%AID%_PS-nnn" Text="Name" UIHint="Headline" Cell="1,3" />
-                      <choose ParamRefId="%AID%_P-%T%920009_R-%T%92000901">
+                      <choose ParamRefId="%AID%_P-%T%940009_R-%T%94000901">
                         <when test="0">
                           <ParameterSeparator Id="%AID%_PS-nnn" Text="Keine Suchergebnisse vorhanden" Cell="2,3" />
                         </when>
                       </choose>
                     </ParameterBlock>
-                    <op:include href="NfcActionSearch.templ.xml" xpath="//Dynamic/ChannelIndependentBlock/*" type="template" prefix="NFCACTSER" IsInner="true" />
+                    <op:include href="KeypadActionSearch.templ.xml" xpath="//Dynamic/ChannelIndependentBlock/*" type="template" prefix="KEYACTSER" IsInner="true" />
                     <!-- More search results available -->
                     <ParameterBlock Id="%AID%_PB-nnn" Inline="true" Layout="Grid">
                       <Rows>
@@ -115,16 +115,16 @@
                         <Column Id="%AID%_PB-nnn_C-1" Width="20%" />
                         <Column Id="%AID%_PB-nnn_C-2" Width="58%" />
                       </Columns>
-                      <choose ParamRefId="%AID%_P-%T%920007_R-%T%92000701">
+                      <choose ParamRefId="%AID%_P-%T%940007_R-%T%94000701">
                         <when test="&gt;0">
-                          <ParameterSeparator Id="%AID%_PS-nnn" Text="{{0:Weitere}} Ergebnisse gefunden, Suche weiter eingrenzen" TextParameterRefId="%AID%_P-%T%920008_R-%T%92000801" Cell="1,2" />
+                          <ParameterSeparator Id="%AID%_PS-nnn" Text="{{0:Weitere}} Ergebnisse gefunden, Suche weiter eingrenzen" TextParameterRefId="%AID%_P-%T%940008_R-%T%94000801" Cell="1,2" />
                         </when>
                       </choose>
                     </ParameterBlock>
 
                     <ParameterSeparator Id="%AID%_PS-nnn" Text="" UIHint="HorizontalRuler" />
-                    <ParameterSeparator Id="%AID%_PS-nnn" Text="Zuweisung von NFC-Tags zu Aktionen" UIHint="Headline" />
-                    <ParameterRefRef RefId="%AID%_UP-%T%920001_R-%T%92000101" HelpContext="%DOC%" />
+                    <ParameterSeparator Id="%AID%_PS-nnn" Text="Zuweisung von Tastencodes zu Aktionen" UIHint="Headline" />
+                    <ParameterRefRef RefId="%AID%_UP-%T%940001_R-%T%94000101" HelpContext="%DOC%" />
                     <ParameterBlock Id="%AID%_PB-nnn" Inline="true" Layout="Grid">
                       <Rows>
                         <Row Id="%AID%_PB-nnn_R-1" />
@@ -138,11 +138,11 @@
                       </Columns>
                       <ParameterSeparator Id="%AID%_PS-nnn" Text="Nr." UIHint="Headline" Cell="1,1" />
                       <ParameterSeparator Id="%AID%_PS-nnn" Text="Aktion" UIHint="Headline" Cell="1,2" />
-                      <ParameterSeparator Id="%AID%_PS-nnn" Text="Tag" UIHint="Headline" Cell="1,3" />
-                      <Button Id="%AID%_B-%T%920004" Text="Sortieren" Cell="1,4" EventHandler="ACC_sort" />
+                      <ParameterSeparator Id="%AID%_PS-nnn" Text="Code ID" UIHint="Headline" Cell="1,3" />
+                      <Button Id="%AID%_B-%T%940004" Text="Sortieren" Cell="1,4" EventHandler="ACC_sort" />
                       <ParameterSeparator Id="%AID%_PS-nnn" Text="Information" UIHint="Headline" Cell="1,5" />
                     </ParameterBlock>
-                    <op:include href="NfcAction.templ.xml" xpath="//Dynamic/ChannelIndependentBlock/*" type="template" prefix="NFCACT" IsInner="true" />
+                    <op:include href="KeypadAction.templ.xml" xpath="//Dynamic/ChannelIndependentBlock/*" type="template" prefix="KEYACT" IsInner="true" />
                   </ParameterBlock>
                 </when>
               </choose>
