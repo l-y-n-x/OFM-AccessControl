@@ -9,8 +9,7 @@
 #include "pn7160interface/pn7160interface.hpp"
 #include "logging/logging.hpp"
 #include "nci/nci.hpp"
-#include "BS811X.h"
-#include "PCA9633.h"
+#include "KeypadForGira.h"
 
 #define INIT_RESET_TIMEOUT 1000
 #define LED_RESET_TIMEOUT 1000
@@ -91,8 +90,7 @@ class AccessControl : public OpenKNX::Module
     void initFlashNfc();
     void initNfc(bool testMode = false, uint8_t testModeNfc = 0);
     void loopNfc(bool testMode = false);
-    void initKeypad(bool testMode = false);
-    void loopKeypad(bool testMode = false);
+    void onKeypadKeyPressed(char key);
     void processFingerScanSuccess(uint16_t location, bool external = false);
     void processNfcScanSuccess(uint16_t nfcId, bool external = false);
     bool enrollFinger(uint16_t location);
@@ -189,11 +187,7 @@ class AccessControl : public OpenKNX::Module
 
     bool testModeNfcFound = false;
 
-    BS811X bs8116;
-
-#ifdef KEYPAD_PCA9633_ADDR
-    PCA9633 pca9633 = PCA9633(REG_PWM0, REG_PWM1, REG_PWM2, REG_PWM3);
-#endif
+    KeypadForGira keypadForGira;
 };
 
 extern AccessControl openknxAccessControl;

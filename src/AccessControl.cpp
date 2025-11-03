@@ -67,7 +67,8 @@ void AccessControl::setup()
     initResetTimer = delayTimerInit();
 
     initNfc();
-    initKeypad();
+    keypadForGira.init();
+    keypadForGira.registerCallback([this](char key) { onKeypadKeyPressed(key); });
 
     logInfoP("Fingerprint module ready.");
     logIndentDown();
@@ -105,27 +106,6 @@ void AccessControl::initNfc(bool testMode, uint8_t testModeNfc)
 
     PN7160Interface::initialize(NFC_IRQ_PIN, NFC_VEN_PIN, NFC_PN7160_ADDR);
     logInfoP("Initialized PN7160 (nfcType=%u).", nfcType);
-}
-
-void AccessControl::initKeypad(bool testMode)
-{
-    if (!testMode &&
-        ParamACC_NfcScanner == 0)
-        return;
-        logInfoP("test1.");
-#ifdef KEYPAD_PCA9633_ADDR
-    pca9633.begin(KEYPAD_PCA9633_ADDR, &OPENKNX_GPIO_WIRE);
-    logInfoP("test2.");
-    pca9633.setLdrStateAll(LDR_STATE_IND_GRP);
-    logInfoP("test3.");
-    pca9633.setGroupControlMode(GROUP_CONTROL_MODE_DIMMING);
-    logInfoP("test4.");
-    pca9633.setRGBW(255, 255, 255, 255);
-    logInfoP("Initialized PCA9633.");
-#endif
-
-    bs8116.begin("8116");
-    logInfoP("Initialized BS8116.");
 }
 
 bool AccessControl::switchFingerprintPower(bool on, bool testMode)
@@ -419,6 +399,7 @@ void AccessControl::loop()
 
     processSyncSend();
     loopNfc();
+    keypadForGira.loop();
 }
 
 void AccessControl::loopNfc(bool testMode)
@@ -564,40 +545,6 @@ void AccessControl::loopNfc(bool testMode)
         nci::reset();
         logDebugP("NCI reset.");
     }
-}
-
-void AccessControl::loopKeypad(bool testMode)
-{
-    if (!testMode &&
-        ParamACC_NfcScanner == 0)
-        return;
-    
-    uint16_t keymap = bs8116.readKeys();
-    String map;
-    for(uint8_t i = 0;i < 16;i++) {           //For 8112 should be 12 
-      uint8_t bit = bitRead(keymap, i);
-      if(bit) { map += '1'; }
-      else { map += '0'; }
-    }
-    Serial.print("Key status:");
-    Serial.print(map);
-
-    uint8_t key = bs8116.getKey_active();
-    Serial.print("  Pressed key: ");
-    Serial.println(key);
-
-    if(bs8116.getKey_passive(12)) {
-      Serial.println("Key 12 is pressed！");
-    }
-
-    if (bs8116.getKey_edge(1, 2)) {
-        Serial.println("Key 2 rising edge detected！");
-    }
-    else if (bs8116.getKey_edge(2, 2)) {
-        Serial.println("Key 2 falling edge detected！");
-    }
-
-    delay(1000);
 }
 
 void AccessControl::processNfcScanSuccess(uint16_t foundId, bool external)
@@ -1016,6 +963,11 @@ void AccessControl::processInputKoEnrollNfc(GroupObject &ko)
     enrollNfcStarted = delayTimerInit();
     enrollNfcId = nfcId;
     enrollNfcDuplicateId = ACC_ID_INVALID;
+}
+
+void AccessControl::onKeypadKeyPressed(char key)
+{
+    logInfoP("Keypad key pressed: %c", key);
 }
 
 void AccessControl::startSyncDelete(SyncType syncType, uint16_t deleteId)
@@ -2313,94 +2265,17 @@ void AccessControl::runTestMode(uint8_t testModeNfc, bool testModeKeypad)
         logIndentDown();
     }
 
-#ifdef KEYPAD_PCA9633_ADDR
     if (testModeKeypad > 0)
     {
         logInfoP("Waiting for keypad input:");
         logIndentUp();
-        initKeypad(true);
-
-        // 1. turn on/off
-        pca9633.turnOff();
-        delay(500);
-
-        pca9633.turnOn();
-        delay(500);
-
-        // 2. individual dimming (setRGB() uses setPwm() internally)
-        pca9633.setRGBW(255, 255, 255, 255);
-        delay(500);
-
-        pca9633.setRGBW(255, 0, 0, 255);
-        delay(500);
-
-        pca9633.setRGBW(0, 255, 0, 255);
-        delay(500);
-
-        pca9633.setRGBW(0, 0, 255, 255);
-        delay(500);
-
-        // 3. group dimming
-        pca9633.setRGBW(255, 255, 255, 255);
-        pca9633.setLdrStateAll(LDR_STATE_IND_GRP);
-
-        for (int pwm = 255; pwm >= 0; pwm--) {
-            pca9633.setGrpPwm(pwm);
-            delay(20);
-        }
-        delay(1000);
-
-        // 4. changing ldr state
-        pca9633.setGrpPwm(255);
-        pca9633.setRGBW(255, 255, 255, 255);
-        pca9633.setLdrState(LDR_STATE_OFF, BIT_LDR1);
-        // color should be magenta
-        delay(500);
-
-        pca9633.setGrpPwm(0);
-        pca9633.setRGBW(0, 0, 0, 0);
-        pca9633.setLdrState(LDR_STATE_ON, BIT_LDR1);
-        // color should be green
-        delay(500);
-
-        pca9633.setGrpPwm(255);
-        pca9633.setRGBW(255, 128, 0, 0);
-        pca9633.setLdrState(LDR_STATE_IND, BIT_LDR1);
-        // color should be orange
-        delay(500);
-
-        pca9633.setGrpPwm(0);
-        pca9633.setRGBW(255, 255, 255, 255);
-        pca9633.setLdrState(LDR_STATE_IND_GRP, BIT_LDR1);
-        // should be no color at all
-        delay(500);
-
-        // 5. test blinking
-        pca9633.setGrpPwm(255);
-        pca9633.setRGBW(255, 255, 255, 255);
-        pca9633.setGroupControlMode(GROUP_CONTROL_MODE_BLINKING);
-        pca9633.setBlinking(BLINKING_PERIOD_1_S, BLINKING_RATIO_BALANCED);
-        delay(10000);
-        pca9633.setGroupControlMode(GROUP_CONTROL_MODE_DIMMING);
-
-        // 6. sleep mode
-        //pca9633.setRGB(0, 255, 255);
-        pca9633.setRGBW(0, 0, 0, 255);
-        delay(500);
-
-        pca9633.sleep();
-        delay(2000);
-
-        pca9633.wakeUp();
-        delay(500);
-        pca9633.setRGBW(0, 0, 0, 128);
+        keypadForGira.runLedTestSequence();
 
         u_int32_t keypadWaitTimer = delayTimerInit();
         while (!testModeNfcFound && !delayCheck(keypadWaitTimer, 100000))
-            loopKeypad(true);
+            keypadForGira.loop(true);
         logIndentDown();
     }
-#endif
 
     logInfoP("Testing finished.");
     logIndentDown();
