@@ -8,13 +8,13 @@ std::string KeypadForGira::logPrefix()
 
 void KeypadForGira::init(bool testMode)
 {
-    // if (ParamACC_NfcScanner == 0)
+    // if (!testMode && ParamACC_NfcScanner == 0)
     //     return;
 
 #ifdef KEYPAD_PCA9633_ADDR
     _ledController.begin(KEYPAD_PCA9633_ADDR, &OPENKNX_GPIO_WIRE);
     _ledController.setLdrStateAll(LDR_STATE_IND);
-    _ledController.setRGBW(0, 0, 0, 128);
+    _ledController.setRGBW(0, 0, 0, 255);
     _ledInitialized = true;
     logInfoP("Initialized PCA9633.");
 #endif
@@ -43,7 +43,6 @@ void KeypadForGira::loop(bool testMode)
         char map[16];
         for (uint8_t i = 0; i < 16; i++)
             map[i] = (keymap & (1 << i)) ? '1' : '0';
-        //map[16] = '\0';
 
         Serial.print("Key status:");
         Serial.print(map);
@@ -51,14 +50,6 @@ void KeypadForGira::loop(bool testMode)
         uint8_t key = _keypad.getKey_active();
         Serial.print("  Pressed key: ");
         Serial.println(key);
-
-        // if (_keypad.getKey_passive(12))
-        //     Serial.println("Key 12 is pressed!");
-
-        // if (_keypad.getKey_edge(1, 2))
-        //     Serial.println("Key 2 rising edge detected!");
-        // else if (_keypad.getKey_edge(2, 2))
-        //     Serial.println("Key 2 falling edge detected!");
 
         delay(1000);
     }
@@ -83,6 +74,32 @@ void KeypadForGira::loop(bool testMode)
 void KeypadForGira::registerCallback(KeyPressedCallback callback)
 {
     _callback = std::move(callback);
+}
+
+void KeypadForGira::setInfoLed(uint8_t red, uint8_t green, uint8_t blue)
+{
+    _ledRed = red;
+    _ledGreen = green;
+    _ledBlue = blue;
+    
+    updateLeds();
+}
+
+void KeypadForGira::setBackgroundLed(uint8_t brightness)
+{
+    _ledBackground = brightness;
+
+    updateLeds();
+}
+
+void KeypadForGira::updateLeds()
+{
+    if (!_ledInitialized)
+        return;
+    
+    uint8_t ledBackground = 255 - _ledBackground; // background is inverted (0 = max brightness, 255 = off)
+    _ledController.setRGBW(_ledRed, _ledGreen, _ledBlue, ledBackground);
+    logDebugP("LEDs now R:%d G:%d B:%d BG:%d", _ledRed, _ledGreen, _ledBlue, ledBackground);
 }
 
 #ifdef KEYPAD_PCA9633_ADDR
@@ -126,5 +143,5 @@ char KeypadForGira::mapKey(uint8_t index) const
     static constexpr char lookup[] = {'F', '3', 'B', '6', '5', '4', '7', '8', '9', 'K', '*', '0', '#', 'C', '2', '1'};
     if (index < sizeof(lookup))
         return lookup[index];
-    return '?';
+    return '\0';
 }
