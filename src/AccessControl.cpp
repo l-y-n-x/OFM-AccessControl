@@ -1,5 +1,8 @@
 #include "AccessControl.h"
 #include "I2CDev.h"
+#include "KeypadEmpty.h"
+#include "KeypadForGira.h"
+
 
 const std::string AccessControl::name()
 {
@@ -67,9 +70,22 @@ void AccessControl::setup()
     initResetTimer = delayTimerInit();
 
     initNfc();
-    keypadForGira.init();
-    keypadForGira.registerCallback([this](char key) { onKeypadKeyPressed(key); });
 
+    // create correct keypad
+    switch (ParamACC_Keypad)
+    {
+        case 1:
+            keypadBase = new KeypadForGira();
+            break;
+    
+        default:
+            keypadBase = new KeypadEmpty();
+            break;
+    }
+
+    keypadBase->init();
+    keypadBase->registerCallback([this](char key) { onKeypadKeyPressed(key); });
+    processKeypadBacklight(false);
     logInfoP("Fingerprint module ready.");
     logIndentDown();
 }
@@ -399,7 +415,11 @@ void AccessControl::loop()
 
     processSyncSend();
     loopNfc();
-    keypadForGira.loop();
+    keypadBase->loop();
+    // turn off infoLed
+    if (delayCheck(keypadInfoLedTimer, 200))
+        keypadBase->setInfoLed(0,0,0);
+    processKeypadBacklight(false);
 }
 
 void AccessControl::loopNfc(bool testMode)
@@ -968,6 +988,55 @@ void AccessControl::processInputKoEnrollNfc(GroupObject &ko)
 void AccessControl::onKeypadKeyPressed(char key)
 {
     logInfoP("Keypad key pressed: %c", key);
+    keypadBase->setInfoLed(0,0,255);
+    keypadInfoLedTimer = delayTimerInit();
+    processKeypadBacklight(true);
+}
+
+void AccessControl::switchKeypadBacklight(bool on) {
+
+    uint8_t intensity = 0;
+    if (on) 
+    {
+        switch (ParamACC_BacklightIntensity)
+        {
+            case VAL_Keypad_BacklightIntensity_High:
+                intensity = 255;
+                break;
+            case VAL_Keypad_BacklightIntensity_Middle:
+                intensity = 128;
+                break;
+            case VAL_Keypad_BacklightIntensity_Low:
+                intensity = 64;
+                break;
+            case VAL_Keypad_BacklightIntensity_Ko:
+                intensity = KoACC_KeypadBacklight.value(Dpt(5,10));
+                break;            
+            default:
+                intensity = 0;
+                break;
+        }
+    }
+    keypadBase->setBackgroundLed(intensity);
+}
+
+void AccessControl::processKeypadBacklight(bool keypress) {
+
+    if (!keypadBacklightInitialized) {
+        if (ParamACC_BacklightState == VAL_Keypad_Backlight_On || ParamACC_BacklightState == VAL_Keypad_Backlight_Ko)
+            switchKeypadBacklight(1);
+        else if (ParamACC_BacklightState == VAL_Keypad_Backlight_Off || ParamACC_BacklightState == VAL_Keypad_Backlight_Keypress)
+            switchKeypadBacklight(0);
+    }
+    if (keypress && ParamACC_BacklightState == VAL_Keypad_Backlight_Keypress)
+    {
+        switchKeypadBacklight(1);
+        keypadBacklightTimer = delayTimerInit();
+    }
+    if (keypadBacklightTimer > 0 && delayCheck(keypadBacklightTimer, 5000))
+        switchKeypadBacklight(0);
+
+    keypadBacklightInitialized = true;
 }
 
 void AccessControl::startSyncDelete(SyncType syncType, uint16_t deleteId)
@@ -2269,11 +2338,11 @@ void AccessControl::runTestMode(uint8_t testModeNfc, bool testModeKeypad)
     {
         logInfoP("Waiting for keypad input:");
         logIndentUp();
-        keypadForGira.runLedTestSequence();
+        keypadBase->runTestMode();
 
         u_int32_t keypadWaitTimer = delayTimerInit();
         while (!testModeNfcFound && !delayCheck(keypadWaitTimer, 100000))
-            keypadForGira.loop(true);
+            keypadBase->loop(true);
         logIndentDown();
     }
 

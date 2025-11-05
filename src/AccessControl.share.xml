@@ -83,7 +83,7 @@
               <ParameterType Id="%AID%_PT-Keypad" Name="Keypad">
                 <TypeRestriction Base="Value" SizeInBit="2" UIHint="DropDown">
                   <Enumeration Text="Kein Keypad" Value="0" Id="%ENID%" />
-                  <Enumeration Text="Keypad von AB-Tools" Value="1" Id="%ENID%" />
+                  <Enumeration Text="Keypad von Gira" Value="1" Id="%ENID%" />
                 </TypeRestriction>
               </ParameterType>
               <ParameterType Id="%AID%_PT-FingerprintScanner" Name="FingerprintScanner">
@@ -153,6 +153,30 @@
                   <Enumeration Text="Fortlaufend" Value="1" Id="%ENID%" />
                 </TypeRestriction>
               </ParameterType>
+              <ParameterType Id="%AID%_PT-BacklightState" Name="BacklightState">
+                <TypeRestriction Base="Value" SizeInBit="2" UIHint="DropDown">
+                  <Enumeration Text="immer eingeschaltet" Value="0" Id="%ENID%" />
+                  <Enumeration Text="einschalten über irgendeine Taste" Value="1" Id="%ENID%" />
+                  <Enumeration Text="einschalten über externes KO" Value="2" Id="%ENID%" />
+                  <Enumeration Text="immer ausgeschaltet" Value="3" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+              <ParameterType Id="%AID%_PT-BacklightIntensity" Name="BacklightIntensity">
+                <TypeRestriction Base="Value" SizeInBit="2" UIHint="DropDown">
+                  <Enumeration Text="hohe Helligkeit" Value="0" Id="%ENID%" />
+                  <Enumeration Text="mittlere Helligkeit" Value="1" Id="%ENID%" />
+                  <Enumeration Text="niedrige Helligkeit" Value="2" Id="%ENID%" />
+                  <Enumeration Text="über externes KO" Value="3" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+              <ParameterType Id="%AID%_PT-FeedbackLed" Name="FeedbackLed">
+                <TypeRestriction Base="Value" SizeInBit="2" UIHint="DropDown">
+                  <Enumeration Text="immer aus" Value="0" Id="%ENID%" />
+                  <Enumeration Text="nur intern" Value="1" Id="%ENID%" />
+                  <Enumeration Text="über KO" Value="2" Id="%ENID%" />
+                  <Enumeration Text="intern und KO" Value="3" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
             </ParameterTypes>
             <Parameters>
               <Parameter Id="%AID%_P-%T%000003" Name="EnrollPersonName" ParameterType="%AID%_PT-Text28Byte" Text="Name der Person" Value="" />
@@ -187,7 +211,7 @@
               <Parameter Id="%AID%_P-%T%000044" Name="EnrollKeypadId" ParameterType="%AID%_PT-NfcId" Text="Tastencode ID" Value="0" />
               <Parameter Id="%AID%_P-%T%000045" Name="EnrollKeypadKeycode" ParameterType="%AID%_PT-NfcKey" Text="Tastencode" Value="" />
               <Parameter Id="%AID%_P-%T%000046" Name="DeleteKeypadId" ParameterType="%AID%_PT-NfcId" Text="Tastencode ID" Value="0" />
-              <Union SizeInBit="56">
+              <Union SizeInBit="64">
                 <Memory CodeSegment="%AID%_RS-04-00000" Offset="0" BitOffset="0" />
                 <Parameter Id="%AID%_UP-%T%000001" Name="VisibleActions" ParameterType="%AID%_PT-FINNumChannels" Offset="0" BitOffset="0" Text="Verfügbare Aktionen" Value="3" SuffixText=" von %N%" />
                 <Parameter Id="%AID%_UP-%T%000008" Name="AuthDelayBase" ParameterType="%AID%_PT-DelayBase" Offset="2" BitOffset="0" Text="Zeitbasis" Value="0" />
@@ -204,6 +228,11 @@
                 <Parameter Id="%AID%_UP-%T%000039" Name="Keypad" ParameterType="%AID%_PT-Keypad" Offset="5" BitOffset="5" Text="Keypad" Value="0" />
                 <!-- 1 bits free -->
                 <Parameter Id="%AID%_UP-%T%000027" Name="SyncDelay" Offset="6" BitOffset="0" ParameterType="%AID%_PT-SyncDelay" Text="Verzögerung zwischen Sync-Telegrammen" Value="100" />
+                <Parameter Id="%AID%_UP-%T%000047" Name="BacklightState" ParameterType="%AID%_PT-BacklightState" Offset="7" BitOffset="0" Text="Hintergrundbeleuchtung" Value="0" />
+                <Parameter Id="%AID%_UP-%T%000048" Name="BacklightIntensity" ParameterType="%AID%_PT-BacklightIntensity" Offset="7" BitOffset="2" Text="Helligkeit" Value="0" />
+                <Parameter Id="%AID%_UP-%T%000049" Name="KeypressTrigger" ParameterType="%AID%_PT-OnOffYesNo" Offset="7" BitOffset="4" Text="Tastendruck auf den Bus senden?" Value="0" />
+                <Parameter Id="%AID%_UP-%T%000050" Name="KeypressIngore" ParameterType="%AID%_PT-OnOffYesNo" Offset="7" BitOffset="5" Text="Ersten Tastendruck zum Einschalten verwenden?" Value="0" />
+                <Parameter Id="%AID%_UP-%T%000051" Name="FeedbackLed" ParameterType="%AID%_PT-FeedbackLed" Offset="7" BitOffset="6" Text="Ansteuerung der Rückmelde-LED" Value="1" />
               </Union>
             </Parameters>
             <ParameterRefs>
@@ -253,6 +282,11 @@
               <ParameterRef Id="%AID%_P-%T%000044_R-%T%00004401" RefId="%AID%_P-%T%000044" />
               <ParameterRef Id="%AID%_P-%T%000045_R-%T%00004501" RefId="%AID%_P-%T%000045" />
               <ParameterRef Id="%AID%_P-%T%000046_R-%T%00004601" RefId="%AID%_P-%T%000046" />
+              <ParameterRef Id="%AID%_UP-%T%000047_R-%T%00004701" RefId="%AID%_UP-%T%000047" />
+              <ParameterRef Id="%AID%_UP-%T%000048_R-%T%00004801" RefId="%AID%_UP-%T%000048" />
+              <ParameterRef Id="%AID%_UP-%T%000049_R-%T%00004901" RefId="%AID%_UP-%T%000049" />
+              <ParameterRef Id="%AID%_UP-%T%000050_R-%T%00005001" RefId="%AID%_UP-%T%000050" />
+              <ParameterRef Id="%AID%_UP-%T%000051_R-%T%00005101" RefId="%AID%_UP-%T%000051" />
             </ParameterRefs>
             <ParameterCalculations>
               <ParameterCalculation Id="%AID%_PC-%T%000001" Language="JavaScript" Name="ACC_ClearFieldContent" LRTransformationFunc="LOG_Nop" RLTransformationFunc="LOG_ClearContent" >
@@ -299,6 +333,10 @@
               <!-- <ComObject Id="%AID%_O-%T%000063" Name="NfcScanSuccessData" Number="163" ObjectSize="4 Bytes" Text="NFC: Scan - Zutrittsdaten" FunctionText="Status" ReadFlag="Disabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-15-0" /> -->
               <ComObject Id="%AID%_O-%T%000015" Name="NfcEnrollNext" Number="27" ObjectSize="1 Bit" Text="NFC: Lerne an - Nächste freie ID" FunctionText="Trigger" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
               <ComObject Id="%AID%_O-%T%000028" Name="NfcEnrollId" Number="28" ObjectSize="2 Bytes" Text="NFC: Lerne an - ID (0-1499)" FunctionText="Trigger" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-7-1" />
+
+              <ComObject Id="%AID%_O-%T%000055" Name="KeypadBacklight" Number="30" ObjectSize="1 Byte" Text="Keypad Hintergrundbeleuchtung" FunctionText="Helligkeit" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
+              <ComObject Id="%AID%_O-%T%000056" Name="KeypadLed" Number="31" ObjectSize="3 Bytes" Text="Keypad Rückmeldungs-LED" FunctionText="RGB-Wert" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-232-600" />
+              <ComObject Id="%AID%_O-%T%000057" Name="KeypadKeypress" Number="32" ObjectSize="1 Bit" Text="Keypad Taste betätigt" FunctionText="Trigger" ReadFlag="Disabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-232-600" />
 
               <ComObject Id="%AID%_O-%T%000051" Name="TouchPcbButtonLeft" Number="51" ObjectSize="1 Bit" Text="Touch-Front: Taste links" FunctionText="Status" ReadFlag="Disabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
               <ComObject Id="%AID%_O-%T%000052" Name="TouchPcbButtonRight" Number="52" ObjectSize="1 Bit" Text="Touch-Front: Taste rechts" FunctionText="Status" ReadFlag="Disabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
@@ -352,6 +390,10 @@
               <ComObjectRef Id="%AID%_O-%T%000052_R-%T%00005201" RefId="%AID%_O-%T%000052" />
               <ComObjectRef Id="%AID%_O-%T%000053_R-%T%00005301" RefId="%AID%_O-%T%000053" />
               <ComObjectRef Id="%AID%_O-%T%000054_R-%T%00005401" RefId="%AID%_O-%T%000054" />
+              <ComObjectRef Id="%AID%_O-%T%000055_R-%T%00005501" RefId="%AID%_O-%T%000055" />
+              <ComObjectRef Id="%AID%_O-%T%000055_R-%T%00005502" RefId="%AID%_O-%T%000055" FunctionText="Schalten" ObjectSize="1 Bit" DatapointType="DPST-1-1"/>
+              <ComObjectRef Id="%AID%_O-%T%000056_R-%T%00005601" RefId="%AID%_O-%T%000056" />
+              <ComObjectRef Id="%AID%_O-%T%000057_R-%T%00005701" RefId="%AID%_O-%T%000057" />
 
             </ComObjectRefs>
             <Script>
@@ -453,9 +495,9 @@
                   </when>
                 </choose>
 
+                <!-- Fingerprint Reader -->
                 <choose ParamRefId="%AID%_UP-%T%000002_R-%T%00000201">
                   <when test="0 1 2">
-                    <!-- Fingerprint Reader -->
                     <ParameterBlock Id="%AID%_PB-nnn" Icon="fingerprint" Text="Fingerprint-Scanner" ShowInComObjectTree="true" >  
                       <ParameterSeparator Id="%AID%_PS-nnn" Text="Hardware-Einstellungen" UIHint="Headline" />
                       <ParameterRefRef RefId="%AID%_UP-%T%000028_R-%T%00002801" IndentLevel="1" HelpContext="%DOC%" />
@@ -615,9 +657,10 @@
                     </ParameterBlock>
                   </when>
                 </choose>
+
+                <!-- NFC Reader -->
                 <choose ParamRefId="%AID%_UP-%T%000034_R-%T%00003401">
                   <when test="!=0">
-                    <!-- NFC Reader -->
                     <ParameterBlock Id="%AID%_PB-nnn" Icon="nfc-variant" Text="NFC-Scanner" ShowInComObjectTree="true" >  
 
                       <ParameterSeparator Id="%AID%_PS-nnn" Text="NFC-Tag bearbeiten" UIHint="Headline" />
@@ -705,13 +748,51 @@
                   </when>
                 </choose>
 
+                <!-- Keypad -->
                 <choose ParamRefId="%AID%_UP-%T%000039_R-%T%00003901">
                   <when test="!=0">
-                    <!-- Keypad -->
                     <ParameterBlock Id="%AID%_PB-nnn" Icon="dialpad" Text="Keypad" ShowInComObjectTree="true" >  
+                      <ParameterSeparator Id="%AID%_PS-nnn" Text="Hardware-Einstellungen" UIHint="Headline" />
+                      <!-- Hintergrundbeleuchtung -->
+                      <ParameterRefRef RefId="%AID%_UP-%T%000047_R-%T%00004701" IndentLevel="1" HelpContext="%DOC%" />
+                      <choose ParamRefId="%AID%_UP-%T%000047_R-%T%00004701">
+                        <when test="!=3">
+                          <!-- Helligkeitseinstellung -->
+                          <ParameterRefRef RefId="%AID%_UP-%T%000048_R-%T%00004801" IndentLevel="2" HelpContext="%DOC%" />
+                        </when>
+                        <when test="2">
+                          <!-- Externes KO -->
+                          <choose ParamRefId="%AID%_UP-%T%000048_R-%T%00004801">
+                            <when test="3">
+                              <!-- Helligkeit ist ein Prozentwert -->
+                              <ComObjectRefRef RefId="%AID%_O-%T%000055_R-%T%00005501" />
+                            </when>
+                            <when test="!=3">
+                              <!-- Helligkeit wird nur eingeschaltet -->
+                              <ComObjectRefRef RefId="%AID%_O-%T%000055_R-%T%00005502" />
+                            </when>
+                          </choose>
+                        </when>
+                      </choose>
+                      <!-- Tastenauswertung -->
+                      <ParameterRefRef RefId="%AID%_UP-%T%000049_R-%T%00004901" IndentLevel="1" HelpContext="%DOC%" />
+                      <choose ParamRefId="%AID%_UP-%T%000049_R-%T%00004901">
+                        <when test="1">
+                          <ComObjectRefRef RefId="%AID%_O-%T%000057_R-%T%00005701" />
+                        </when>
+                      </choose>
+                      <ParameterRefRef RefId="%AID%_UP-%T%000050_R-%T%00005001" IndentLevel="1" HelpContext="%DOC%" />
+                      <!-- Feedback-LED -->
+                      <ParameterRefRef RefId="%AID%_UP-%T%000051_R-%T%00005101" IndentLevel="1" HelpContext="%DOC%" />
+                      <choose ParamRefId="%AID%_UP-%T%000051_R-%T%00005101">
+                        <when test="2 3">
+                          <ComObjectRefRef RefId="%AID%_O-%T%000056_R-%T%00005601" />
+                        </when>
+                      </choose>
+                      <ParameterSeparator Id="%AID%_PS-nnn" Text="" UIHint="HorizontalRuler" />
 
                       <ParameterSeparator Id="%AID%_PS-nnn" Text="Tastencode bearbeiten" UIHint="Headline" />
-                      <ParameterRefRef RefId="%AID%_P-%T%000040_R-%T%00004001" IndentLevel="1" HelpContext="%DOC%" />
+                      <ParameterRefRef RefId="%AID%_P-%T%000040_R-%T%00004001" IndentLevel="1" HelpContext="ACC-Tastencode-Edit" />
                       <choose ParamRefId="%AID%_P-%T%000040_R-%T%00004001">
                         <when test="1 3">
                           <ParameterRefRef RefId="%AID%_P-%T%000043_R-%T%00004301" IndentLevel="2" HelpContext="%DOC%" />

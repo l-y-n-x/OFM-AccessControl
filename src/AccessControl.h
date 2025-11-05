@@ -3,13 +3,13 @@
 #include "OpenKNX.h"
 #include "hardware.h"
 #include "Fingerprint.h"
+#include "KeypadBase.h"
 #include "ActionChannel.h"
 #include "FastCRC.h"
 #include "lz4.h"
 #include "pn7160interface/pn7160interface.hpp"
 #include "logging/logging.hpp"
 #include "nci/nci.hpp"
-#include "KeypadForGira.h"
 
 #define INIT_RESET_TIMEOUT 1000
 #define LED_RESET_TIMEOUT 1000
@@ -44,6 +44,18 @@
   #define FINGER_PWR_ON    SCANNER_PWR_PIN_ACTIVE_ON == HIGH ? HIGH : LOW
   #define FINGER_PWR_OFF   SCANNER_PWR_PIN_ACTIVE_ON == HIGH ? LOW : HIGH
 #endif
+
+
+// ETS parameter values
+#define VAL_Keypad_Backlight_On 0
+#define VAL_Keypad_Backlight_Keypress 1
+#define VAL_Keypad_Backlight_Ko 2
+#define VAL_Keypad_Backlight_Off 3
+
+#define VAL_Keypad_BacklightIntensity_High 0
+#define VAL_Keypad_BacklightIntensity_Middle 1
+#define VAL_Keypad_BacklightIntensity_Low 2
+#define VAL_Keypad_BacklightIntensity_Ko 3
 
 /*
 Flash Storage Layout:
@@ -91,6 +103,8 @@ class AccessControl : public OpenKNX::Module
     void initNfc(bool testMode = false, uint8_t testModeNfc = 0);
     void loopNfc(bool testMode = false);
     void onKeypadKeyPressed(char key);
+    void processKeypadBacklight(bool keypress);
+    void switchKeypadBacklight(bool on);
     void processFingerScanSuccess(uint16_t location, bool external = false);
     void processNfcScanSuccess(uint16_t nfcId, bool external = false);
     bool enrollFinger(uint16_t location);
@@ -187,7 +201,11 @@ class AccessControl : public OpenKNX::Module
 
     bool testModeNfcFound = false;
 
-    KeypadForGira keypadForGira;
+    // KeypadForGira keyapdForGira;
+    KeypadBase *keypadBase = nullptr;
+    uint32_t keypadInfoLedTimer = 0;
+    uint32_t keypadBacklightTimer = 0;
+    bool keypadBacklightInitialized = false;
 };
 
 extern AccessControl openknxAccessControl;

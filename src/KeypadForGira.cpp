@@ -1,10 +1,7 @@
 #include <utility>
 #include "KeypadForGira.h"
 
-std::string KeypadForGira::logPrefix()
-{
-    return "Keypad";
-}
+KeypadForGira::KeypadForGira() {};
 
 void KeypadForGira::init(bool testMode)
 {
@@ -59,7 +56,10 @@ void KeypadForGira::loop(bool testMode)
 
     if (!_callback || newlyPressed == 0)
         return;
-
+    // skip, if more than 1 bit is set (more than one key is pressed)
+    if (newlyPressed & (newlyPressed-1))
+        return;
+        
     for (uint8_t index = 0; index < 16; ++index)
     {
         if (newlyPressed & (1 << index))
@@ -67,13 +67,10 @@ void KeypadForGira::loop(bool testMode)
             char resolved = mapKey(index);
             if (resolved != '\0')
                 _callback(resolved);
+                logInfoP("Last keypress: %u", millis()-_lastKeypress);
+                _lastKeypress = delayTimerInit();
         }
     }
-}
-
-void KeypadForGira::registerCallback(KeyPressedCallback callback)
-{
-    _callback = std::move(callback);
 }
 
 void KeypadForGira::setInfoLed(uint8_t red, uint8_t green, uint8_t blue)
@@ -103,7 +100,7 @@ void KeypadForGira::updateLeds()
 }
 
 #ifdef KEYPAD_PCA9633_ADDR
-void KeypadForGira::runLedTestSequence()
+void KeypadForGira::runTestMode()
 {
     if (!_ledInitialized)
         return;

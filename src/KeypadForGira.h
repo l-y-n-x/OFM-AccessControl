@@ -1,39 +1,35 @@
 #pragma once
 
-#include <functional>
-#include "Arduino.h"
-#include "OpenKNX.h"
-#include "hardware.h"
-#include "knxprod.h"
+#include "KeypadBase.h"
 #include "BS811X.h"
 
 #ifdef KEYPAD_PCA9633_ADDR
     #include "PCA9633.h"
 #endif
 
-class KeypadForGira
+class KeypadForGira : public KeypadBase
 {
   public:
-    using KeyPressedCallback = std::function<void(char)>;
-
-    std::string logPrefix();
-    void init(bool testMode = false);
-    void loop(bool testMode = false);
-    void registerCallback(KeyPressedCallback callback);
-    void setInfoLed(uint8_t red, uint8_t green, uint8_t blue);
-    void setBackgroundLed(uint8_t brightness);
-
+    KeypadForGira();
+    void init(bool testMode = false) override;
+    void loop(bool testMode = false) override;
+    void setInfoLed(uint8_t red, uint8_t green, uint8_t blue) override;
+    void setBackgroundLed(uint8_t brightness) override;
+    
 #ifdef KEYPAD_PCA9633_ADDR
-    void runLedTestSequence();
+    void runTestMode() override;
 #endif
+
+  // protected:
+  //   KeyPressedCallback _callback;
+  //   bool _initialized = false;
 
   private:
     char mapKey(uint8_t index) const;
     void updateLeds();
 
-    KeyPressedCallback _callback;
-    bool _initialized = false;
     uint16_t _lastKeymap = 0;
+    uint32_t _lastKeypress = 0;
     BS811X _keypad;
 
 #ifdef KEYPAD_PCA9633_ADDR

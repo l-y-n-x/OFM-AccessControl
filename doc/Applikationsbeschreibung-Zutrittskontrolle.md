@@ -499,11 +499,85 @@ Ein Tastencode ist eine Folge von über das Keypad eingebbaren Zeichen. Man kön
 
 Deswegen wird beim Keyped das gleiche Verfahren angewendet wie schon beim Fingerprint und bei NFC-Scanner: Es gibt eine Art Anlernprozess - nur ist dieser einfach direkt in der ETS vornehmbar: Man weist einfach einem Tastencode eine ID zu, diese werden mit den Tastencodes zusammen zwischen verschiedenen Geräten synchronisiert und können dann in Aktionen verwendet werden.
 
+### **Hardware-Einstellungen**
+
+Hier erfolgend die für das ausgewählte Keypad spezifischen Einstellungen.
+
+<!-- DOC -->
+#### **Hintergrundbeleuchtung**
+
+<!-- DOC Skip="1" -->
+Erscheint nur bei einem Touchpad mit Hintergurndbeleuchtung.
+
+Mit dieser Einstellung wird bestimmt, wie die Hintergrundbeleuchtung für das Keypad eingeschaltet wird.
+
+* **immer eingeschaltet** - Bei dieser Einstellung ist die Beleuchtung immer eingeschaltet.
+* **einschalten über irgendeine Taste** - Die Beleuchtung wird beim Drücken einer Taste für 15 Sekunden eingeschaltet.
+* **einschalten über externes KO** - Die Beleuchtung wird über ein KO durch ein KNX-Telegramm (z.B. von einem PM) ein- und ausgeschaltet.
+* **immer ausgeschaltet** - Die Beleuchtung bleibt immer aus.
+
+<!-- DOC -->
+#### **Helligkeit** 
+
+<!-- DOC Skip="1" -->
+Erscheint nur, wenn bei Hintergrundbeleuchtung nicht "immer ausgeschaltet" gewählt wurde.
+
+Hier kann man die Helligkeit der Hintergrundbeleuchtung bestimmen.
+
+* **hohe Helligkeit** - die Beleuchtung ist so hell wie möglich
+* **mittlere Helligkeit** - die Tasten werden gut erkennbar beleuchtet
+* **niedrige Helligkeit** - die Tasten werden nur leicht beleuchtet
+* **über externes KO** - die Helligkeit kann über ein KO bestimmt werden, mit Werten von 0%-100%
+
+<!-- DOC -->
+#### **Tastendruck auf den Bus senden**
+
+Beim drücken einer Taste wird ein EIN-Telegramm auf den Bus gesendet. Damit kann man z.B. mit Hilfe einer Logik realisieren, dass die Hintergrundbeleuchtung in Abhängigkeit von mehreren Bedingungen eingeschaltet wird (Tastendruck und PM).
+
+<!-- DOC -->
+#### **Ersten Tastendruck zum Einschalten verwenden**
+
+Ist diese Einstellung aktiv, wird der erste Tastendruck nicht als Eingabe für den Tastencode gewertet. Das kann z.B. sinnvoll dazu verwendet werden, dass bei abgeschalteter Hintergrundbeleuchtung irgendein Tastendruck dazu genutzt wird, die Beleuchtung einzuschalten und erst dann die Codeeingabe beginnt.
+
+Schaltet man die Hintergrundbeleuchtung über einen PM ein, kann man auch die erste Taste zur Codeeingabe nutzen und sollte dann hier ein "Nein" wählen.
+
+
+#### **Rückmelde LED**
+
+Erscheint nur bei Keypads mit Rückmelde-LED.
+
+Die Rückmelde-LED zeigt - ähnlich wie der Fingerprint - verschiedene Zustände während der Codeeingabe an.
+
+Die Codeerkennung beginnt mit dem ersten Tastendruck, außer man hat eingestellt, dass sie mit dem zweiten beginnen soll.
+
+Bei jedem erkannten Tastendruck blinkt die LED kurz blau.
+Wurde ein korrekter Code erkannt und eine entsprechende Aktion ausgelöst, leuchtet die LED kurz grün.
+Wurde ein korrekter Code erkannt und es ist keine Aktion zugeordnet, leuchtet die LED kurz gelb.
+Wurde ein Code nicht erkannt, leuchtet die LED kurz rot.
+Ein Code ist dann nicht erkannt, wenn
+
+* die maximale Anzahl von 10 Zeichen eingegeben wurde und diese keinem Code entsprechen
+* ein Abschlußzeichen festgelegt und eingegeben wurde und der Code falsch ist
+* für 15 Sekunden kein Zeichen eingegeben wurde
+
+Zusätzlich zu den internen Zuständen kann die Rückmelde-LED auch über ein KO vom KNX-Bus gesteuert werden, um z.B. die erfolgreiche Ausführung einer Aktion anzuzeigen.
+
+<!-- DOC -->
+##### **Ansteuerung der Rückmelde-LED**
+
+Hier kann man einstellen, wie die Rückmelde-LED angesteuert wird.
+
+* **immer aus** - die Rückmelde-LED wird nicht angesteuert (nicht empfohlen)
+* **nur intern** - die Rückmelde-LED stellt nur die oben beschriebenen internen Zustände dar
+* **über KO** - die Rückmelde-LED stellt das dar, was über Bustelegramme an ihr KO übermittelt wird
+* **intern und KO** - Es werden interne Zustände bei der Tasteneingabe und Farben über KO dargestellt
+
+
 ### **Tastencodes bearbeiten**
 
 Dieser Bereich stellt einen Tastencode-Editor dar, mit dem man in der ETS einzelne Tastencodes anlegen, ändern oder löschen kann.
 
-<!-- DOC -->
+<!-- DOC HelpContext="Tastencode-Edit" -->
 #### **Tastencode**
 
 Dieses Auswahlfeld wählt die gewünschte Editierfunktion aus:
