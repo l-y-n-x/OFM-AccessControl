@@ -21,6 +21,7 @@ void AccessControl::setup()
 
     initFlashFingerprint();
     initFlashNfc();
+    initFlashKeypad();
 
 #ifdef SCANNER_PWR_PIN
     pinMode(SCANNER_PWR_PIN, OUTPUT);
@@ -254,6 +255,32 @@ void AccessControl::initFlashNfc()
     }
     else
         logInfoP("NFC flash contents valid.");
+}
+
+void AccessControl::initFlashKeypad()
+{
+    _keypadStorage.init("keypad", KEYPAD_FLASH_OFFSET, KEYPAD_FLASH_SIZE);
+    uint32_t magicWord = _keypadStorage.readInt(0);
+    if (magicWord != OPENKNX_ACC_FLASH_KEY_MAGIC_WORD)
+    {
+        logInfoP("Keypad flash contents invalid:");
+        logIndentUp();
+        logDebugP("Indentification code read: %u", magicWord);
+
+        uint8_t clearBuffer[FLASH_SECTOR_SIZE] = {};
+        for (size_t i = 0; i < KEYPAD_FLASH_SIZE / FLASH_SECTOR_SIZE; i++)
+            _keypadStorage.write(FLASH_SECTOR_SIZE * i, clearBuffer, FLASH_SECTOR_SIZE);
+        _keypadStorage.commit();
+        logDebugP("Flash cleared.");
+
+        _keypadStorage.writeInt(0, OPENKNX_ACC_FLASH_KEY_MAGIC_WORD);
+        _keypadStorage.commit();
+        logDebugP("Indentification code written.");
+
+        logIndentDown();
+    }
+    else
+        logInfoP("Keypad flash contents valid.");
 }
 
 void AccessControl::interruptDisplayTouched()
@@ -830,6 +857,49 @@ bool AccessControl::deleteNfc(uint16_t nfcId, bool sync)
     return success;
 }
 
+bool AccessControl::deleteKey(uint16_t keyId, bool sync)
+{
+    logInfoP("Delete request:");
+    logIndentUp();
+
+    uint32_t storageOffset = ACC_CalcKeyStorageOffset(keyId);
+    logDebugP("storageOffset: %d", storageOffset);
+
+    uint8_t emptyTest[10] = {};
+    uint8_t codeUid[10] = {};
+    _keypadStorage.read(storageOffset, codeUid, 10);
+
+    // if code UID empty, no code with this ID defined
+    bool success = memcmp(emptyTest, codeUid, 10);
+    if (success)
+    {
+        char personName[28] = {}; // empty
+
+        uint32_t storageOffset = ACC_CalcKeyStorageOffset(keyId);
+        _keypadStorage.write(storageOffset, *emptyTest, 10);
+        _keypadStorage.write(storageOffset + 10, *personName, 28);
+        _keypadStorage.commit();
+
+        if (sync)
+            startSyncDelete(SyncType::KEY, keyId);
+            
+        //###ToDo: remote management status feedback
+
+        keypadBase->setInfoLed(0, 255, 0);
+        logInfoP("Key with ID %d deleted.", keyId);
+    }
+    else
+    {
+        //###ToDo: remote management status feedback
+
+        keypadBase->setInfoLed(255, 0, 0);
+        logInfoP("Key with ID %d not found.", keyId);
+    }
+
+    keypadInfoLedTimer = delayTimerInit();
+    return success;
+}
+
 void AccessControl::processInputKo(GroupObject& ko)
 {
     // uint16_t idReceived;
@@ -1050,7 +1120,7 @@ void AccessControl::startSyncDelete(SyncType syncType, uint16_t deleteId)
     /*
     Sync Delete Packet Layout:
     -   0: 1 byte : sequence number (0: control packet)
-    -   1: 1 byte : sync type (0: new finger, 1: delete finger, 10: new NFC, 11: delete NFC)
+    -   1: 1 byte : sync type (0: new finger, 1: delete finger, 10: new NFC, 11: delete NFC, 20: new key, 21: delete key)
     -   2: 1 byte : sync data format version (currently always 0)
     - 3-4: 2 bytes: finger ID
     */
@@ -1063,6 +1133,9 @@ void AccessControl::startSyncDelete(SyncType syncType, uint16_t deleteId)
             break;
         case SyncType::NFC:
             syncTypeCode = 11;
+            break;
+        case SyncType::KEY:
+            syncTypeCode = 21;
             break;
         default:
             logErrorP("Sync-Send (syncType=%u): delete: Unsupported sync type", syncType);
@@ -1136,6 +1209,13 @@ void AccessControl::startSyncSend(SyncType syncType, uint16_t syncId, bool loadM
             _nfcStorage.read(storageOffset, syncData, OPENKNX_ACC_FLASH_NFC_DATA_SIZE);
             memcpy(syncSendBufferTemp, syncData, OPENKNX_ACC_FLASH_NFC_DATA_SIZE);        
             break;
+        case SyncType::KEY:
+            syncTypeCode = 20;
+
+            storageOffset = ACC_CalcKeyStorageOffset(syncId);
+            _keypadStorage.read(storageOffset, syncData, OPENKNX_ACC_FLASH_KEY_DATA_SIZE);
+            memcpy(syncSendBufferTemp, syncData, OPENKNX_ACC_FLASH_KEY_DATA_SIZE);        
+            break;
         default:
             logErrorP("Sync-Send (syncType=%u): delete: Unsupported sync type", syncType);
             return;
@@ -1153,7 +1233,7 @@ void AccessControl::startSyncSend(SyncType syncType, uint16_t syncId, bool loadM
     /*
     Sync Control Packet Layout:
     -    0: 1 byte : sequence number (0: control packet)
-    -    1: 1 byte : sync type (0: new finger, 1: delete finger, 10: new NFC, 11: delete NFC)
+    -    1: 1 byte : sync type (0: new finger, 1: delete finger, 10: new NFC, 11: delete NFC, 20: new key, 21: delete key)
     -    2: 1 byte : sync data format version (currently always 0)
     -  3-4: 2 bytes: total data content size
     -    5: 1 byte : max. payload data length per data packet
@@ -1226,11 +1306,28 @@ void AccessControl::processSyncReceive(uint8_t* data)
     {
         uint16_t syncDeleteFingerId;
         uint16_t syncDeleteNfcId;
+        uint16_t syncDeleteKeyId;
         switch (data[1]) // sync type
         {
             case 0: // new finger
             case 10: // new NFC
-                syncReceiveType = data[1] == 0 ? SyncType::FINGER : SyncType::NFC;
+            case 20: // new key
+                switch (data[1])
+                {
+                    case 0:
+                        syncReceiveType = SyncType::FINGER;
+                        break;
+                    case 10:
+                        syncReceiveType = SyncType::NFC;
+                        break;
+                    case 20:
+                        syncReceiveType = SyncType::KEY;
+                        break;
+                    default:
+                        logInfoP("Sync-Receive: Unsupported sync type: %u", data[1]);
+                        return;
+                }
+
                 if (data[2] != 0)
                 {
                     logInfoP("Sync-Receive (syncType=%u): Unsupported sync version: %u", syncReceiveType, data[2]);
@@ -1276,6 +1373,21 @@ void AccessControl::processSyncReceive(uint8_t* data)
                 logDebugP("Sync-Receive (delete NFC): fingerId=%u", syncDeleteNfcId);
 
                 deleteNfc(syncDeleteNfcId, false);
+
+                syncReceiving = false;
+                return;
+
+            case 21: // delete key
+                if (data[2] != 0)
+                {
+                    logInfoP("Sync-Receive (delete key): Unsupported sync version: %u", data[2]);
+                    return;
+                }
+
+                syncDeleteKeyId = (data[3] << 8) | data[4];
+                logDebugP("Sync-Receive (delete key): keyId=%u", syncDeleteKeyId);
+
+                deleteKey(syncDeleteKeyId, false);
 
                 syncReceiving = false;
                 return;
@@ -1384,6 +1496,11 @@ void AccessControl::processSyncReceive(uint8_t* data)
                 _nfcStorage.write(storageOffset, syncSendBufferTemp, OPENKNX_ACC_FLASH_NFC_DATA_SIZE);
                 _nfcStorage.commit();
                 break;
+            case SyncType::KEY:
+                storageOffset = ACC_CalcKeyStorageOffset(syncReceiveSyncId);
+                _keypadStorage.write(storageOffset, syncSendBufferTemp, OPENKNX_ACC_FLASH_KEY_DATA_SIZE);
+                _keypadStorage.commit();
+                break;
         }
 
         logInfoP("Sync-Receive (syncType=%u): data stored", syncReceiveType);
@@ -1448,6 +1565,24 @@ bool AccessControl::processFunctionProperty(uint8_t objectIndex, uint8_t propert
             return true;
         case 112:
             handleFunctionPropertySearchNfcIdByTag(data, resultData, resultLength);
+            return true;
+        case 202:
+            handleFunctionPropertySyncKey(data, resultData, resultLength);
+            return true;
+        case 203:
+            handleFunctionPropertyDeleteKey(data, resultData, resultLength);
+            return true;
+        case 204:
+            handleFunctionPropertyChangeKey(data, resultData, resultLength);
+            return true;
+        case 206:
+            handleFunctionPropertyResetKeypad(data, resultData, resultLength);
+            return true;
+        case 211:
+            handleFunctionPropertySearchCodeByKeyId(data, resultData, resultLength);
+            return true;
+        case 212:
+            handleFunctionPropertySearchKeyIdByCode(data, resultData, resultLength);
             return true;
     }
 
@@ -2146,6 +2281,241 @@ void AccessControl::handleFunctionPropertySearchNfcIdByTag(uint8_t *data, uint8_
                 resultData[3 + foundCount * recordLength + 1] = nfcId;
                 memcpy(resultData + 3 + foundCount * recordLength + 2, tagUid, 10);
                 memcpy(resultData + 3 + foundCount * recordLength + 12, tagName, 28);
+
+                foundCount++;
+            }
+
+            foundTotalCount++;
+        }
+    }
+    
+    resultData[0] = foundCount > 0 ? 0 : 1;
+    resultData[1] = foundTotalCount >> 8;
+    resultData[2] = foundTotalCount;
+    resultLength = 3 + foundCount * recordLength;
+
+    logDebugP("foundTotalCount: %u", foundTotalCount);
+    logDebugP("returned resultLength: %u", resultLength);
+    logIndentDown();
+}
+
+
+void AccessControl::handleFunctionPropertyChangeKey(uint8_t *data, uint8_t *resultData, uint8_t &resultLength)
+{
+    logInfoP("Function property keypad: Change request");
+    logIndentUp();
+
+    uint16_t keyId = (data[1] << 8) | data[2];
+    logDebugP("keyId: %d", keyId);
+
+    uint8_t codeUid[10] = {};
+    memcpy(codeUid, data + 3, 10);
+
+    bool codeUidEmpty = true;
+    for (uint8_t i = 0; i < 10; i++)
+    {
+        if (codeUid[i] != 0)
+        {
+            codeUidEmpty = false;
+            break;
+        }
+    }
+
+    logDebugP("codeUid (empty=%u):", codeUidEmpty);
+    logHexDebugP(codeUid, 10);
+
+    uint8_t codeName[28] = {};
+    bool codeNameEmpty = false;
+    for (uint8_t i = 0; i < 28; i++)
+    {
+        memcpy(codeName + i, data + 13 + i, 1);
+        if (codeName[i] == 0) // null termination
+        {
+            codeUidEmpty = i == 0;
+            break;
+        }
+    }
+    logDebugP("codeName: %s", codeName);
+
+    uint32_t storageOffset = ACC_CalcKeyStorageOffset(keyId);
+    logDebugP("storageOffset: %d", storageOffset);
+    if (!codeUidEmpty)
+        _keypadStorage.write(storageOffset, codeUid, 10);
+    if (!codeNameEmpty)
+        _keypadStorage.write(storageOffset + 10, codeName, 28);
+    _keypadStorage.commit();
+
+    syncRequestedKeyId = keyId;
+    syncRequestedKeyTimer = delayTimerInit();
+
+    resultData[0] = 0;
+    resultLength = 1;
+    logIndentDown();
+}
+
+void AccessControl::handleFunctionPropertySyncKey(uint8_t *data, uint8_t *resultData, uint8_t &resultLength)
+{
+    logInfoP("Function property keypad: Sync request");
+    logIndentUp();
+
+    uint16_t keyId = (data[1] << 8) | data[2];
+    logDebugP("keyId: %d", keyId);
+
+    syncRequestedKeyId = keyId;
+    syncRequestedKeyTimer = delayTimerInit();
+
+    resultData[0] = 0;
+    resultLength = 1;
+    logIndentDown();
+}
+
+void AccessControl::handleFunctionPropertyDeleteKey(uint8_t *data, uint8_t *resultData, uint8_t &resultLength)
+{
+    logInfoP("Function property keypad: Delete request");
+    logIndentUp();
+
+    uint16_t keyId = (data[1] << 8) | data[2];
+    logDebugP("keyId: %d", keyId);
+
+    bool success = deleteKey(keyId);
+    
+    resultData[0] = success ? 0 : 1;    
+    resultLength = 1;
+    logIndentDown();
+}
+
+void AccessControl::handleFunctionPropertyResetKeypad(uint8_t *data, uint8_t *resultData, uint8_t &resultLength)
+{
+    logInfoP("Function property keypad: Reset keypad");
+    logIndentUp();
+
+    char keyData[OPENKNX_ACC_FLASH_KEY_DATA_SIZE] = {}; // empty
+    for (uint16_t i = 0; i < MAX_KEYS; i++)
+    {
+        uint32_t storageOffset = ACC_CalcKeyStorageOffset(i);
+        _keypadStorage.write(storageOffset, *keyData, OPENKNX_ACC_FLASH_KEY_DATA_SIZE);
+    }
+    _keypadStorage.commit();
+
+    switchLedGreenPower(true);
+    resetTouchPcbLedTimer = delayTimerInit();
+
+    resultData[0] = 0;
+    resultLength = 1;
+    logIndentDown();
+}
+
+void AccessControl::handleFunctionPropertySearchCodeByKeyId(uint8_t *data, uint8_t *resultData, uint8_t &resultLength)
+{
+    logInfoP("Function property keypad: Search Keypad-Code by KeyId");
+    logIndentUp();
+
+    uint16_t keyId = (data[1] << 8) | data[2];
+    logDebugP("keyId: %d", keyId);
+
+    uint32_t storageOffset = ACC_CalcKeyStorageOffset(keyId);
+    logDebugP("storageOffset: %d", storageOffset);
+
+    uint8_t emptyTest[10] = {};
+    uint8_t codeUid[10] = {};
+    _keypadStorage.read(storageOffset, codeUid, 10);
+    if (memcmp(emptyTest, codeUid, 10))
+    {
+        uint8_t codeName[28] = {};
+        _keypadStorage.read(storageOffset + 10, codeName, 28);
+
+        logDebugP("Found:");
+        logIndentUp();
+        logDebugP("codeUid:");
+        logHexDebugP(codeUid, 10);
+        logDebugP("codeName: %s", codeName);
+        logIndentDown();
+
+        resultData[0] = 0;
+        memcpy(resultData + 1, codeUid, 10);
+        resultLength = 11;
+        for (uint8_t i = 0; i < 28; i++)
+        {
+            memcpy(resultData + 11 + i, codeName + i, 1);
+            resultLength++;
+
+            if (codeName[i] == 0) // null termination
+                break;
+        }
+    }
+    else
+    {
+        logDebugP("Not found.");
+
+        resultData[0] = 1;
+        resultLength = 1;
+    }
+
+    logIndentDown();
+}
+
+void AccessControl::handleFunctionPropertySearchKeyIdByCode(uint8_t *data, uint8_t *resultData, uint8_t &resultLength)
+{
+    logInfoP("Function property keypad: Search KeyId(s) by Code Name");
+    logIndentUp();
+
+    uint8_t searchCodeUid[10] = {};
+    memcpy(searchCodeUid, data + 1, 10);
+    logDebugP("searchCodeUid:");
+    logHexDebugP(searchCodeUid, 10);
+
+    uint8_t emptyTest[10] = {};
+    bool searchCodeUidEmpty = !memcmp(emptyTest, searchCodeUid, 10);
+
+    char searchCodeName[28] = {};
+    uint8_t searchCodeNameLength = 28;
+    for (size_t i = 0; i < 28; i++)
+    {
+        memcpy(searchCodeName + i, data + 11 + i, 1);
+        if (searchCodeName[i] == 0) // null termination
+        {
+            searchCodeNameLength = i;
+            break;
+        }
+    }
+    logDebugP("searchCodeName: %s (length: %u)", searchCodeName, searchCodeNameLength);
+    logDebugP("resultLength: %u", resultLength);
+
+    uint8_t recordLength = OPENKNX_ACC_FLASH_KEY_DATA_SIZE + 2;
+    uint8_t foundCount = 0;
+    uint16_t foundTotalCount = 0;
+
+    uint32_t storageOffset = 0;
+    uint8_t codeUid[10] = {};
+    uint8_t codeName[28] = {};
+    for (uint16_t keyId = 0; keyId < MAX_KEYS; keyId++)
+    {
+        storageOffset = ACC_CalcKeyStorageOffset(keyId);
+        _keypadStorage.read(storageOffset, codeUid, 10);
+        if (!searchCodeUidEmpty)
+        {
+            if (memcmp(codeUid, searchCodeUid, 10))
+                continue;
+        }
+
+        _keypadStorage.read(storageOffset + 10, codeName, 28);
+        if (strcasestr((char *)codeName, searchCodeName) != nullptr && codeName[0] != 0)
+        {
+            // we return max. 5 results (3 + 5 * 40 = 203 bytes)
+            if (foundCount < 5)
+            {
+                logDebugP("Found:");
+                logIndentUp();
+                logDebugP("keyId: %d", keyId);
+                logDebugP("codeUid");
+                logHexDebugP(codeUid, 10);
+                logDebugP("codeName: %s", codeName);
+                logIndentDown();
+
+                resultData[3 + foundCount * recordLength] = keyId >> 8;
+                resultData[3 + foundCount * recordLength + 1] = keyId;
+                memcpy(resultData + 3 + foundCount * recordLength + 2, codeUid, 10);
+                memcpy(resultData + 3 + foundCount * recordLength + 12, codeName, 28);
 
                 foundCount++;
             }

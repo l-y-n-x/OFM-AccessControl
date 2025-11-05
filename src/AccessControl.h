@@ -35,6 +35,11 @@
 #define NFC_ENROLL_TIMEOUT 10000
 #define NFC_ENROLL_LED_BLINK_INTERVAL 250
 
+#define MAX_KEYS 1500
+#define OPENKNX_ACC_FLASH_KEY_MAGIC_WORD 4021287134
+#define OPENKNX_ACC_FLASH_KEY_DATA_SIZE 38 // 10 byte: key code, 28 bytes: person name
+#define ACC_CalcKeyStorageOffset(keyId) keyId * OPENKNX_ACC_FLASH_KEY_DATA_SIZE + 4096 + 1 // first byte free for keypad info storage format version
+
 #define SYNC_BUFFER_SIZE TEMPLATE_SIZE + OPENKNX_ACC_FLASH_FINGER_DATA_SIZE
 #define SYNC_SEND_PACKET_DATA_LENGTH 13
 #define SYNC_AFTER_ENROLL_DELAY 500
@@ -88,7 +93,8 @@ class AccessControl : public OpenKNX::Module
     enum SyncType : uint8_t
     {
         FINGER,
-        NFC
+        NFC,
+        KEY
     };
 
     static void interruptDisplayTouched();
@@ -100,6 +106,7 @@ class AccessControl : public OpenKNX::Module
     void initFingerprintScanner(bool testMode = false);
     void initFlashFingerprint();
     void initFlashNfc();
+    void initFlashKeypad();
     void initNfc(bool testMode = false, uint8_t testModeNfc = 0);
     void loopNfc(bool testMode = false);
     void onKeypadKeyPressed(char key);
@@ -110,6 +117,7 @@ class AccessControl : public OpenKNX::Module
     bool enrollFinger(uint16_t location);
     bool deleteFinger(uint16_t location, bool sync = true);
     bool deleteNfc(uint16_t nfcId, bool sync = true);
+    bool deleteKey(uint16_t keyId, bool sync = true);
     void sendScanAccessData(SyncType syncType, bool success, uint16_t foundId = 0);
     bool searchForFinger();
     void resetRingLed();
@@ -138,6 +146,12 @@ class AccessControl : public OpenKNX::Module
     void handleFunctionPropertyResetNfcScanner(uint8_t *data, uint8_t *resultData, uint8_t &resultLength);
     void handleFunctionPropertySearchTagByNfcId(uint8_t *data, uint8_t *resultData, uint8_t &resultLength);
     void handleFunctionPropertySearchNfcIdByTag(uint8_t *data, uint8_t *resultData, uint8_t &resultLength);
+    void handleFunctionPropertyChangeKey(uint8_t *data, uint8_t *resultData, uint8_t &resultLength);
+    void handleFunctionPropertySyncKey(uint8_t *data, uint8_t *resultData, uint8_t &resultLength);
+    void handleFunctionPropertyDeleteKey(uint8_t *data, uint8_t *resultData, uint8_t &resultLength);
+    void handleFunctionPropertyResetKeypad(uint8_t *data, uint8_t *resultData, uint8_t &resultLength);
+    void handleFunctionPropertySearchCodeByKeyId(uint8_t *data, uint8_t *resultData, uint8_t &resultLength);
+    void handleFunctionPropertySearchKeyIdByCode(uint8_t *data, uint8_t *resultData, uint8_t &resultLength);
     static void delayCallback(uint32_t period);
     void runTestMode(uint8_t testModeNfc, bool testModeKeypad);
 
@@ -146,6 +160,7 @@ class AccessControl : public OpenKNX::Module
 
     OpenKNX::Flash::Driver _fingerprintStorage;
     OpenKNX::Flash::Driver _nfcStorage;
+    OpenKNX::Flash::Driver _keypadStorage;
     ActionChannel *_channels[ACC_ChannelCount];
 
     Fingerprint *finger = nullptr;
@@ -182,9 +197,10 @@ class AccessControl : public OpenKNX::Module
     uint8_t syncSendPacketSentCount = 0;
     uint32_t syncRequestedFingerTimer = 0;
     uint16_t syncRequestedFingerId = 0;
-
     uint32_t syncRequestedNfcTimer = 0;
     uint16_t syncRequestedNfcId = 0;
+    uint32_t syncRequestedKeyTimer = 0;
+    uint16_t syncRequestedKeyId = 0;
 
     bool syncReceiving = false;
     SyncType syncReceiveType;
