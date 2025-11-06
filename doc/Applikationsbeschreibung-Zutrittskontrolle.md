@@ -530,25 +530,41 @@ Hier kann man die Helligkeit der Hintergrundbeleuchtung bestimmen.
 * **über externes KO** - die Helligkeit kann über ein KO bestimmt werden, mit Werten von 0%-100%
 
 <!-- DOC -->
-#### **Tastendruck auf den Bus senden**
+#### **Ausschalten nach**
 
-Beim drücken einer Taste wird ein EIN-Telegramm auf den Bus gesendet. Damit kann man z.B. mit Hilfe einer Logik realisieren, dass die Hintergrundbeleuchtung in Abhängigkeit von mehreren Bedingungen eingeschaltet wird (Tastendruck und PM).
+<!-- DOC Skip="1" -->
+Erscheint nur, wenn bei Hintergrundbeleuchtung "einschalten über irgendeine Taste" oder "einschalten über externes KO" gewählt wurde.
+
+Hier kann man angeben, nach welcher Zeit die Hintergrundbeleuchtung wieder ausgeschaltet wird. Bei der Eingabe einer 0 wird nicht automatisch ausgeschaltet. Dies sollte man nur verwenden, wenn bei Hintergrundbeleuchtung die Einstellung "inschalten über externes KO" gewählt wurde, da nur dann auch über den Bus ausgeschaltet werden kann.
 
 <!-- DOC -->
-#### **Ersten Tastendruck zum Einschalten verwenden**
+#### **Ersten Tastendruck ignorieren**
+
+<!-- DOC Skip="1" -->
+Erscheint nur, wenn bei Hintergrundbeleuchtung "einschalten über irgendeine Taste" oder "einschalten über externes KO" gewählt wurde.
 
 Ist diese Einstellung aktiv, wird der erste Tastendruck nicht als Eingabe für den Tastencode gewertet. Das kann z.B. sinnvoll dazu verwendet werden, dass bei abgeschalteter Hintergrundbeleuchtung irgendein Tastendruck dazu genutzt wird, die Beleuchtung einzuschalten und erst dann die Codeeingabe beginnt.
 
 Schaltet man die Hintergrundbeleuchtung über einen PM ein, kann man auch die erste Taste zur Codeeingabe nutzen und sollte dann hier ein "Nein" wählen.
 
+<!-- DOC -->
+#### **Tastendruck auf den Bus senden**
 
+Beim drücken einer Taste wird ein EIN-Telegramm auf den Bus gesendet. Damit kann man z.B. mit Hilfe einer Logik realisieren, dass die Hintergrundbeleuchtung in Abhängigkeit von mehreren Bedingungen eingeschaltet wird (Tastendruck und PM).
+
+<!-- DOC -->
+#### **Max. Pause zwischen zwei Eingaben**
+
+Hier wird festegelegt, wie viel Zeit zwischen 2 Eingaben vergehen darf, bevor das Keypad die Eingabesequenz abbricht und die bisherige Eingabe verwirft. Der Code gilt dann als nicht erkannt. Die Rückmeldung wird dann entsprechend signalisiert, siehe Rückmelde LED oder Rückmelde Buzzer.
+
+<!-- DOC HelpContext="Ansteuerung der Rückmelde-LED"-->
 #### **Rückmelde LED**
 
 Erscheint nur bei Keypads mit Rückmelde-LED.
 
 Die Rückmelde-LED zeigt - ähnlich wie der Fingerprint - verschiedene Zustände während der Codeeingabe an.
 
-Die Codeerkennung beginnt mit dem ersten Tastendruck, außer man hat eingestellt, dass sie mit dem zweiten beginnen soll.
+Die Codeerkennung beginnt mit dem ersten Tastendruck, außer man hat eingestellt, dass die erste Taste ignoriert werden soll.
 
 Bei jedem erkannten Tastendruck blinkt die LED kurz blau.
 Wurde ein korrekter Code erkannt und eine entsprechende Aktion ausgelöst, leuchtet die LED kurz grün.
@@ -562,15 +578,96 @@ Ein Code ist dann nicht erkannt, wenn
 
 Zusätzlich zu den internen Zuständen kann die Rückmelde-LED auch über ein KO vom KNX-Bus gesteuert werden, um z.B. die erfolgreiche Ausführung einer Aktion anzuzeigen.
 
-<!-- DOC -->
 ##### **Ansteuerung der Rückmelde-LED**
 
 Hier kann man einstellen, wie die Rückmelde-LED angesteuert wird.
 
 * **immer aus** - die Rückmelde-LED wird nicht angesteuert (nicht empfohlen)
-* **nur intern** - die Rückmelde-LED stellt nur die oben beschriebenen internen Zustände dar
+* **nur intern** - die Rückmelde-LED stellt nur die beschriebenen internen Zustände dar
 * **über KO** - die Rückmelde-LED stellt das dar, was über Bustelegramme an ihr KO übermittelt wird
 * **intern und KO** - Es werden interne Zustände bei der Tasteneingabe und Farben über KO dargestellt
+
+<!-- DOC HelpContext="Ansteuerung des Rückmelde-Buzzers" -->
+#### Rückmelde Buzzer**
+
+Erscheint nur bei Keypads mit Rückmelde-Buzzer.
+
+Der Rückmelde-Buzzer erlaubt die Rückmeldung verschiedener Zustände während der Codeeingabe mit Hilfe von Tönen.
+
+Die Codeerkennung beginnt mit dem ersten Tastendruck, außer man hat eingestellt, dass die erste Taste ignoriert werden soll.
+
+Bei jedem erkannten Tastendruck wird ein kurzer Piepton generiert.
+Wurde ein korrekter Code erkannt und eine entsprechende Aktion ausgelöst, werden 2 kuze Pieptöne abgespielt.
+Wurde ein korrekter Code erkannt und es ist keine Aktion zugeordnet, werden 2 kurze, gefolgt von einem langen Piepton abgespielt.
+Wurde ein Code nicht erkannt, wird ein langer Piepton abgespielt.
+Ein Code ist dann nicht erkannt, wenn
+
+* die maximale Anzahl von 10 Zeichen eingegeben wurde und diese keinem Code entsprechen
+* ein Abschlußzeichen festgelegt und eingegeben wurde und der Code falsch ist
+* für die festgelegte Zeit kein Zeichen eingegeben wurde
+
+Zusätzlich zu den internen Zuständen kann der Buzzer auch über ein KO vom KNX-Bus gesteuert werden, um z.B. die erfolgreiche Ausführung einer Aktion anzuzeigen.
+
+##### **Ansteuerung des Rückmelde-Buzzers**
+
+Hier kann man einstellen, wie der Rückmelde-Buzzer angesteuert wird.
+
+* **immer aus** - der Rückmelde-Buzzer wird nicht angesteuert (nicht empfohlen)
+* **nur intern** - der Rückmelde-Buzzer stellt nur die beschriebenen internen Zustände dar
+* **über KO** - der Rückmelde-Buzzer stellt das dar, was über Bustelegramme an sein KO übermittelt wird
+* **intern und KO** - Es werden interne Zustände bei der Tasteneingabe und Signale über KO abgespielt
+
+
+### **Tastenfunktionen**
+
+Hier kann man bestimmen, ob vorhandene Sondertasten eine Reaktion auf dem Bus auslösen oder als Teil der Codeeingabe gewertet werden.
+
+Alle Tasten, die als Sondertasten definiert werden, stehen für die Codeeingabe nicht mehr zur Verfügung.
+
+<!-- DOC -->
+#### **Explizites Abschlußzeichen**
+
+Jede Taste, außer den Ziffern 0-9, kann als Abschlußzeichen definiert werden. 
+
+Wird ein Abschlußzeichen definiert, wird erst mit der Eingabe des Abschlußzeichens der eingegebene Code überprüft und die Eingabe entsprechend als gültig oder ungültig gewertet.
+
+Wird kein Abschlußzeichen definiert, wird nach jedem Zeichen geprüft, ob ein gültiger Code vorliegt. Falls ja, gibt es sofort eine Reaktion, falls nein, wird auf das nächste Zeichen gewartet. Erst wenn eine festgelegte Zeit kein Zeichen eingegeben wurde, wird die Eingabe als ungültig gewertet. 
+
+
+<!-- DOC -->
+#### **Taste zum löschen verwenden**
+
+Die angegebene Taste (falls vorhanden, die Taste C, sonst die Taste *) kann als Löschtaste definiert werden. Wird sie gedrückt, wird die bisherige Eingabe gelöscht und muss von neuem begonnen werden.
+
+<!-- DOC -->
+#### **Taste F als KO verfügbar machen**
+
+<!-- DOC Skip="1" -->
+Erscheint nur beim Keypad von Gira.
+
+Wird diese Einstellung gewählt, erscheint ein zusätzliches KO, dass den Tastendruck dieser Taste wiederspiegelt. Dieser Tastendruck kann dann z.B. im virtuellen Taster ausgewertet werden.
+
+Wird die Einstellung nicht gewählt, steht die Taste F als Buchstabe F zur Codeeingabe zur Verfügung.
+
+<!-- DOC -->
+#### **Taste 'Klingel' als KO verfügbar machen**
+
+<!-- DOC Skip="1" -->
+Erscheint nur beim Keypad von Gira.
+
+Wird diese Einstellung gewählt, erscheint ein zusätzliches KO, dass den Tastendruck dieser Taste wiederspiegelt. Dieser Tastendruck kann dann z.B. im virtuellen Taster ausgewertet werden oder direkt an eine Klingel weitergeleitet werden.
+
+Wird die Einstellung nicht gewählt, steht die Taste 'Klingel' als Buchstabe B (Bell) zur Codeeingabe zur Verfügung.
+
+<!-- DOC -->
+#### **Taste 'Schlüssel' als KO verfügbar machen**
+
+<!-- DOC Skip="1" -->
+Erscheint nur beim Keypad von Gira.
+
+Wird diese Einstellung gewählt, erscheint ein zusätzliches KO, dass den Tastendruck dieser Taste wiederspiegelt. Dieser Tastendruck kann dann z.B. im virtuellen Taster ausgewertet werden oder direkt ein Gartentor öffnen.
+
+Wird die Einstellung nicht gewählt, steht die Taste 'Schlüssel' als Buchstabe K (Key) zur Codeeingabe zur Verfügung.
 
 
 ### **Tastencodes bearbeiten**

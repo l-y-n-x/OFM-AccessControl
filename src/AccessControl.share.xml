@@ -11,6 +11,9 @@
                 <TypeRestriction Base="Value" SizeInBit="16">
                   <Enumeration Text="Touch-Front: Taste links" Value="71" Id="%ENID%" />
                   <Enumeration Text="Touch-Front: Taste rechts" Value="72" Id="%ENID%" />
+                  <Enumeration Text="Keypad: Taste F" Value="54" Id="%ENID%" />
+                  <Enumeration Text="Keypad: Taste Klingel" Value="55" Id="%ENID%" />
+                  <Enumeration Text="Keypad: Taste Schlüssel" Value="56" Id="%ENID%" />
                   <Enumeration Text="Binäreingang A" Value="86" Id="%ENID%" />
                   <Enumeration Text="Binäreingang B" Value="87" Id="%ENID%" />
                   <Enumeration Text="Binäreingang C" Value="88" Id="%ENID%" />
@@ -83,7 +86,8 @@
               <ParameterType Id="%AID%_PT-Keypad" Name="Keypad">
                 <TypeRestriction Base="Value" SizeInBit="2" UIHint="DropDown">
                   <Enumeration Text="Kein Keypad" Value="0" Id="%ENID%" />
-                  <Enumeration Text="Keypad von Gira" Value="1" Id="%ENID%" />
+                  <Enumeration Text="Keypad (Touch) von Gira" Value="1" Id="%ENID%" />
+                  <Enumeration Text="Keypad (Tastatur)" Value="2" Id="%ENID%" />
                 </TypeRestriction>
               </ParameterType>
               <ParameterType Id="%AID%_PT-FingerprintScanner" Name="FingerprintScanner">
@@ -177,6 +181,38 @@
                   <Enumeration Text="intern und KO" Value="3" Id="%ENID%" />
                 </TypeRestriction>
               </ParameterType>
+              <ParameterType Id="%AID%_PT-FeedbackBuzzer" Name="FeedbackBuzzer">
+                <TypeRestriction Base="Value" SizeInBit="2" UIHint="DropDown">
+                  <Enumeration Text="immer aus" Value="0" Id="%ENID%" />
+                  <Enumeration Text="nur intern" Value="1" Id="%ENID%" />
+                  <Enumeration Text="über KO" Value="2" Id="%ENID%" />
+                  <Enumeration Text="intern und KO" Value="3" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+              <ParameterType Id="%AID%_PT-DelayBaseMinuteSecond" Name="DelayBaseMinuteSecond">
+                <TypeRestriction Base="Value" SizeInBit="2" UIHint="DropDown">
+                  <Enumeration Text="Sekunde(n)" Value="0" Id="%ENID%" />
+                  <Enumeration Text="Minute(n)" Value="1" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+              <ParameterType Id="%AID%_PT-TerminationKey" Name="TerminationKey">
+                <TypeRestriction Base="Value" SizeInBit="3" UIHint="DropDown">
+                  <Enumeration Text="kein Abschluss" Value="0" Id="%ENID%" />
+                  <Enumeration Text="# - Doppelkreuz" Value="1" Id="%ENID%" />
+                  <Enumeration Text="* - Stern" Value="2" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+              <ParameterType Id="%AID%_PT-TerminationKeyExtended" Name="TerminationKeyExtended">
+                <TypeRestriction Base="Value" SizeInBit="3" UIHint="DropDown">
+                  <Enumeration Text="kein Abschluss" Value="0" Id="%ENID%" />
+                  <Enumeration Text="# - Doppelkreuz" Value="1" Id="%ENID%" />
+                  <Enumeration Text="* - Stern" Value="2" Id="%ENID%" />
+                  <Enumeration Text="F - Funktion" Value="3" Id="%ENID%" />
+                  <Enumeration Text="B - Klingel" Value="4" Id="%ENID%" />
+                  <Enumeration Text="K - Schlüssel" Value="5" Id="%ENID%" />
+                  <Enumeration Text="C - Löschen" Value="6" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
             </ParameterTypes>
             <Parameters>
               <Parameter Id="%AID%_P-%T%000003" Name="EnrollPersonName" ParameterType="%AID%_PT-Text28Byte" Text="Name der Person" Value="" />
@@ -211,7 +247,7 @@
               <Parameter Id="%AID%_P-%T%000044" Name="EnrollKeypadId" ParameterType="%AID%_PT-NfcId" Text="Tastencode ID" Value="0" />
               <Parameter Id="%AID%_P-%T%000045" Name="EnrollKeypadKeycode" ParameterType="%AID%_PT-NfcKey" Text="Tastencode" Value="" />
               <Parameter Id="%AID%_P-%T%000046" Name="DeleteKeypadId" ParameterType="%AID%_PT-NfcId" Text="Tastencode ID" Value="0" />
-              <Union SizeInBit="64">
+              <Union SizeInBit="88">
                 <Memory CodeSegment="%AID%_RS-04-00000" Offset="0" BitOffset="0" />
                 <Parameter Id="%AID%_UP-%T%000001" Name="VisibleActions" ParameterType="%AID%_PT-FINNumChannels" Offset="0" BitOffset="0" Text="Verfügbare Aktionen" Value="3" SuffixText=" von %N%" />
                 <Parameter Id="%AID%_UP-%T%000008" Name="AuthDelayBase" ParameterType="%AID%_PT-DelayBase" Offset="2" BitOffset="0" Text="Zeitbasis" Value="0" />
@@ -226,13 +262,25 @@
                 <Parameter Id="%AID%_UP-%T%000014" Name="EnableAccessData" Offset="5" BitOffset="3" ParameterType="%AID%_PT-OnOffYesNo" Text="Zutrittsdaten-KOs aktivieren" Value="0" />
                 <Parameter Id="%AID%_UP-%T%000019" Name="EnableTouchPcb" Offset="5" BitOffset="4" ParameterType="%AID%_PT-OnOffYesNo" Text="Touch-Frontplatine vorhanden" Value="0" />
                 <Parameter Id="%AID%_UP-%T%000039" Name="Keypad" ParameterType="%AID%_PT-Keypad" Offset="5" BitOffset="5" Text="Keypad" Value="0" />
-                <!-- 1 bits free -->
+                <Parameter Id="%AID%_UP-%T%000059" Name="KeyProcessingC" ParameterType="%AID%_PT-OnOffYesNo" Offset="5" BitOffset="7" Text="Taste C zum Löschen der Eingabe verwenden" Value="1" />
                 <Parameter Id="%AID%_UP-%T%000027" Name="SyncDelay" Offset="6" BitOffset="0" ParameterType="%AID%_PT-SyncDelay" Text="Verzögerung zwischen Sync-Telegrammen" Value="100" />
                 <Parameter Id="%AID%_UP-%T%000047" Name="BacklightState" ParameterType="%AID%_PT-BacklightState" Offset="7" BitOffset="0" Text="Hintergrundbeleuchtung" Value="0" />
                 <Parameter Id="%AID%_UP-%T%000048" Name="BacklightIntensity" ParameterType="%AID%_PT-BacklightIntensity" Offset="7" BitOffset="2" Text="Helligkeit" Value="0" />
                 <Parameter Id="%AID%_UP-%T%000049" Name="KeypressTrigger" ParameterType="%AID%_PT-OnOffYesNo" Offset="7" BitOffset="4" Text="Tastendruck auf den Bus senden?" Value="0" />
-                <Parameter Id="%AID%_UP-%T%000050" Name="KeypressIngore" ParameterType="%AID%_PT-OnOffYesNo" Offset="7" BitOffset="5" Text="Ersten Tastendruck zum Einschalten verwenden?" Value="0" />
+                <Parameter Id="%AID%_UP-%T%000050" Name="KeypressIngore" ParameterType="%AID%_PT-OnOffYesNo" Offset="7" BitOffset="5" Text="Ersten Tastendruck ignorieren?" Value="0" />
                 <Parameter Id="%AID%_UP-%T%000051" Name="FeedbackLed" ParameterType="%AID%_PT-FeedbackLed" Offset="7" BitOffset="6" Text="Ansteuerung der Rückmelde-LED" Value="1" />
+                <!-- Backlight Delay Pattern 2 Byte -->
+                <Parameter Id="%AID%_UP-%T%000052" Name="BacklightDelayBase" ParameterType="%AID%_PT-DelayBase" Offset="8" BitOffset="0" Text="Zeitbasis" Value="0" />
+                <Parameter Id="%AID%_UP-%T%000053" Name="BacklightDelayTime" ParameterType="%AID%_PT-DelayTime" Offset="8" BitOffset="2" Text="Zeit" Value="15" />
+                <!-- Keypress Delay Pattern 2 Byte -->
+                <Parameter Id="%AID%_UP-%T%000054" Name="KeypressDelayBase" ParameterType="%AID%_PT-DelayBaseMinuteSecond" Offset="10" BitOffset="0" Text="Zeitbasis" Value="0" />
+                <Parameter Id="%AID%_UP-%T%000055" Name="KeypressDelayTime" ParameterType="%AID%_PT-DelayTime" Offset="10" BitOffset="2" Text="Zeit" Value="5" />
+                <Parameter Id="%AID%_UP-%T%000056" Name="KeyProcessingF" ParameterType="%AID%_PT-OnOffYesNo" Offset="11" BitOffset="0" Text="Taste F als KO verfügbar machen" Value="0" />
+                <Parameter Id="%AID%_UP-%T%000057" Name="KeyProcessingB" ParameterType="%AID%_PT-OnOffYesNo" Offset="11" BitOffset="1" Text="Taste 'Klingel' als KO verfügbar machen" Value="0" />
+                <Parameter Id="%AID%_UP-%T%000058" Name="KeyProcessingK" ParameterType="%AID%_PT-OnOffYesNo" Offset="11" BitOffset="2" Text="Taste 'Schlüssel' als KO verfügbar machen" Value="0" />
+                <Parameter Id="%AID%_UP-%T%000060" Name="KeyTermination" ParameterType="%AID%_PT-TerminationKeyExtended" Offset="11" BitOffset="3" Text="Explizites Abschlusszeichen" Value="0" />
+                <Parameter Id="%AID%_UP-%T%000061" Name="KeyTerminationShort" ParameterType="%AID%_PT-TerminationKey" Offset="11" BitOffset="3" Text="Explizites Abschlusszeichen" Value="0" />
+                <Parameter Id="%AID%_UP-%T%000062" Name="FeedbackBuzzer" ParameterType="%AID%_PT-FeedbackBuzzer" Offset="11" BitOffset="6" Text="Ansteuerung des Rückmelde-Buzzers" Value="1" />
               </Union>
             </Parameters>
             <ParameterRefs>
@@ -287,8 +335,20 @@
               <ParameterRef Id="%AID%_UP-%T%000049_R-%T%00004901" RefId="%AID%_UP-%T%000049" />
               <ParameterRef Id="%AID%_UP-%T%000050_R-%T%00005001" RefId="%AID%_UP-%T%000050" />
               <ParameterRef Id="%AID%_UP-%T%000051_R-%T%00005101" RefId="%AID%_UP-%T%000051" />
+              <ParameterRef Id="%AID%_UP-%T%000052_R-%T%00005201" RefId="%AID%_UP-%T%000052" />
+              <ParameterRef Id="%AID%_UP-%T%000053_R-%T%00005301" RefId="%AID%_UP-%T%000053" />
+              <ParameterRef Id="%AID%_UP-%T%000054_R-%T%00005401" RefId="%AID%_UP-%T%000054" />
+              <ParameterRef Id="%AID%_UP-%T%000055_R-%T%00005501" RefId="%AID%_UP-%T%000055" />
+              <ParameterRef Id="%AID%_UP-%T%000056_R-%T%00005601" RefId="%AID%_UP-%T%000056" />
+              <ParameterRef Id="%AID%_UP-%T%000057_R-%T%00005701" RefId="%AID%_UP-%T%000057" />
+              <ParameterRef Id="%AID%_UP-%T%000058_R-%T%00005801" RefId="%AID%_UP-%T%000058" />
+              <ParameterRef Id="%AID%_UP-%T%000059_R-%T%00005901" RefId="%AID%_UP-%T%000059" />
+              <ParameterRef Id="%AID%_UP-%T%000059_R-%T%00005902" RefId="%AID%_UP-%T%000059" Text="Taste * zum löschen der Eingabe verwenden?" />
+              <ParameterRef Id="%AID%_UP-%T%000060_R-%T%00006001" RefId="%AID%_UP-%T%000060" />
+              <ParameterRef Id="%AID%_UP-%T%000061_R-%T%00006101" RefId="%AID%_UP-%T%000061" />
+              <ParameterRef Id="%AID%_UP-%T%000062_R-%T%00006201" RefId="%AID%_UP-%T%000062" />
             </ParameterRefs>
-            <ParameterCalculations>
+           <ParameterCalculations>
               <ParameterCalculation Id="%AID%_PC-%T%000001" Language="JavaScript" Name="ACC_ClearFieldContent" LRTransformationFunc="LOG_Nop" RLTransformationFunc="LOG_ClearContent" >
                 <LParameters>
                   <ParameterRefRef RefId="%AID%_P-%T%000031_R-%T%00003101" AliasName="ResultDisplay" />
@@ -336,7 +396,11 @@
 
               <ComObject Id="%AID%_O-%T%000055" Name="KeypadBacklight" Number="30" ObjectSize="1 Byte" Text="Keypad Hintergrundbeleuchtung" FunctionText="Helligkeit" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-5-1" />
               <ComObject Id="%AID%_O-%T%000056" Name="KeypadLed" Number="31" ObjectSize="3 Bytes" Text="Keypad Rückmeldungs-LED" FunctionText="RGB-Wert" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-232-600" />
-              <ComObject Id="%AID%_O-%T%000057" Name="KeypadKeypress" Number="32" ObjectSize="1 Bit" Text="Keypad Taste betätigt" FunctionText="Trigger" ReadFlag="Disabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-232-600" />
+              <ComObject Id="%AID%_O-%T%000058" Name="KeypadBuzzer" Number="32" ObjectSize="1 Bit" Text="Keypad Rückmeldungs-Buzzer" FunctionText="Schalten" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-%T%000057" Name="KeypadKeypress" Number="33" ObjectSize="1 Bit" Text="Keypad Taste betätigt" FunctionText="Trigger" ReadFlag="Disabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-%T%000059" Name="KeypadPressF" Number="34" ObjectSize="1 Bit" Text="Keypad Taste F betätigt" FunctionText="Zustand senden" ReadFlag="Disabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-%T%000060" Name="KeypadPressB" Number="35" ObjectSize="1 Bit" Text="Keypad Taste 'Klingel' betätigt" FunctionText="Zustand senden" ReadFlag="Disabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
+              <ComObject Id="%AID%_O-%T%000061" Name="KeypadPressK" Number="36" ObjectSize="1 Bit" Text="Keypad Taste 'Schlüssel' betätigt" FunctionText="Zustand senden" ReadFlag="Disabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
 
               <ComObject Id="%AID%_O-%T%000051" Name="TouchPcbButtonLeft" Number="51" ObjectSize="1 Bit" Text="Touch-Front: Taste links" FunctionText="Status" ReadFlag="Disabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
               <ComObject Id="%AID%_O-%T%000052" Name="TouchPcbButtonRight" Number="52" ObjectSize="1 Bit" Text="Touch-Front: Taste rechts" FunctionText="Status" ReadFlag="Disabled" WriteFlag="Disabled" CommunicationFlag="Enabled" TransmitFlag="Enabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" DatapointType="DPST-1-1" />
@@ -394,7 +458,10 @@
               <ComObjectRef Id="%AID%_O-%T%000055_R-%T%00005502" RefId="%AID%_O-%T%000055" FunctionText="Schalten" ObjectSize="1 Bit" DatapointType="DPST-1-1"/>
               <ComObjectRef Id="%AID%_O-%T%000056_R-%T%00005601" RefId="%AID%_O-%T%000056" />
               <ComObjectRef Id="%AID%_O-%T%000057_R-%T%00005701" RefId="%AID%_O-%T%000057" />
-
+              <ComObjectRef Id="%AID%_O-%T%000058_R-%T%00005801" RefId="%AID%_O-%T%000058" />
+              <ComObjectRef Id="%AID%_O-%T%000059_R-%T%00005901" RefId="%AID%_O-%T%000059" />
+              <ComObjectRef Id="%AID%_O-%T%000060_R-%T%00006001" RefId="%AID%_O-%T%000060" />
+              <ComObjectRef Id="%AID%_O-%T%000061_R-%T%00006101" RefId="%AID%_O-%T%000061" />
             </ComObjectRefs>
             <Script>
               <op:include href="AccessControl.script.js" type="script" />
@@ -753,40 +820,140 @@
                   <when test="!=0">
                     <ParameterBlock Id="%AID%_PB-nnn" Icon="dialpad" Text="Keypad" ShowInComObjectTree="true" >  
                       <ParameterSeparator Id="%AID%_PS-nnn" Text="Hardware-Einstellungen" UIHint="Headline" />
-                      <!-- Hintergrundbeleuchtung -->
-                      <ParameterRefRef RefId="%AID%_UP-%T%000047_R-%T%00004701" IndentLevel="1" HelpContext="%DOC%" />
-                      <choose ParamRefId="%AID%_UP-%T%000047_R-%T%00004701">
-                        <when test="!=3">
-                          <!-- Helligkeitseinstellung -->
-                          <ParameterRefRef RefId="%AID%_UP-%T%000048_R-%T%00004801" IndentLevel="2" HelpContext="%DOC%" />
-                        </when>
-                        <when test="2">
-                          <!-- Externes KO -->
-                          <choose ParamRefId="%AID%_UP-%T%000048_R-%T%00004801">
-                            <when test="3">
-                              <!-- Helligkeit ist ein Prozentwert -->
-                              <ComObjectRefRef RefId="%AID%_O-%T%000055_R-%T%00005501" />
-                            </when>
+                      <choose ParamRefId="%AID%_UP-%T%000039_R-%T%00003901">
+                        <when test="1">
+                          <!-- Hintergrundbeleuchtung -->
+                          <ParameterRefRef RefId="%AID%_UP-%T%000047_R-%T%00004701" IndentLevel="1" HelpContext="%DOC%" />
+                          <choose ParamRefId="%AID%_UP-%T%000047_R-%T%00004701">
                             <when test="!=3">
-                              <!-- Helligkeit wird nur eingeschaltet -->
-                              <ComObjectRefRef RefId="%AID%_O-%T%000055_R-%T%00005502" />
+                              <!-- Helligkeitseinstellung -->
+                              <ParameterRefRef RefId="%AID%_UP-%T%000048_R-%T%00004801" IndentLevel="2" HelpContext="%DOC%" />
+                            </when>
+                            <when test="1 2">
+                              <!-- Ausschalten -->
+                              <ParameterBlock Id="%AID%_PB-nnn" Inline="true" Layout="Grid" HelpContext="ACC-Ausschalten-nach">
+                                <Rows>
+                                  <Row Id="%AID%_PB-nnn_R-1" />
+                                </Rows>
+                                <Columns>
+                                  <Column Id="%AID%_PB-nnn_C-1" Width="3%" />
+                                  <Column Id="%AID%_PB-nnn_C-2" Width="42%" />
+                                  <Column Id="%AID%_PB-nnn_C-3" Width="15%" />
+                                  <Column Id="%AID%_PB-nnn_C-4" Width="22%" />
+                                </Columns>
+                                <ParameterSeparator Id="%AID%_PS-nnn" Text="Ausschalten nach&#10;(0=nicht ausschalten)" Cell="1,2" />
+                                <ParameterRefRef RefId="%AID%_UP-%T%000053_R-%T%00005301" Cell="1,3" />
+                                <ParameterRefRef RefId="%AID%_UP-%T%000052_R-%T%00005201" Cell="1,4" />
+                              </ParameterBlock>
+                              <!-- Taste ignorieren -->
+                              <ParameterRefRef RefId="%AID%_UP-%T%000050_R-%T%00005001" IndentLevel="2" HelpContext="%DOC%" />
+                            </when>
+                            <when test="2">
+                              <!-- Externes KO -->
+                              <choose ParamRefId="%AID%_UP-%T%000048_R-%T%00004801">
+                                <when test="3">
+                                  <!-- Helligkeit ist ein Prozentwert -->
+                                  <ComObjectRefRef RefId="%AID%_O-%T%000055_R-%T%00005501" />
+                                </when>
+                                <when test="!=3">
+                                  <!-- Helligkeit wird nur eingeschaltet -->
+                                  <ComObjectRefRef RefId="%AID%_O-%T%000055_R-%T%00005502" />
+                                </when>
+                              </choose>
                             </when>
                           </choose>
                         </when>
-                      </choose>
-                      <!-- Tastenauswertung -->
-                      <ParameterRefRef RefId="%AID%_UP-%T%000049_R-%T%00004901" IndentLevel="1" HelpContext="%DOC%" />
-                      <choose ParamRefId="%AID%_UP-%T%000049_R-%T%00004901">
-                        <when test="1">
-                          <ComObjectRefRef RefId="%AID%_O-%T%000057_R-%T%00005701" />
+                        <when test="1 2">
+                          <!-- Tastenauswertung -->
+                          <ParameterRefRef RefId="%AID%_UP-%T%000049_R-%T%00004901" IndentLevel="1" HelpContext="%DOC%" />
+                          <choose ParamRefId="%AID%_UP-%T%000049_R-%T%00004901">
+                            <when test="1">
+                              <ComObjectRefRef RefId="%AID%_O-%T%000057_R-%T%00005701" />
+                            </when>
+                          </choose>
+                          <!-- Pause zwischen 2 Tasten -->
+                          <ParameterBlock Id="%AID%_PB-nnn" Inline="true" Layout="Grid" HelpContext="ACC-Max-Pause-zwischen-zwei-Eingaben">
+                            <Rows>
+                              <Row Id="%AID%_PB-nnn_R-1" />
+                            </Rows>
+                            <Columns>
+                              <Column Id="%AID%_PB-nnn_C-1" Width="1%" />
+                              <Column Id="%AID%_PB-nnn_C-2" Width="44%" />
+                              <Column Id="%AID%_PB-nnn_C-3" Width="15%" />
+                              <Column Id="%AID%_PB-nnn_C-4" Width="22%" />
+                            </Columns>
+                            <ParameterSeparator Id="%AID%_PS-nnn" Text=" Max. Pause zwischen zwei Eingaben" Cell="1,2" />
+                            <ParameterRefRef RefId="%AID%_UP-%T%000055_R-%T%00005501" Cell="1,3" />
+                            <ParameterRefRef RefId="%AID%_UP-%T%000054_R-%T%00005401" Cell="1,4" />
+                          </ParameterBlock>
                         </when>
-                      </choose>
-                      <ParameterRefRef RefId="%AID%_UP-%T%000050_R-%T%00005001" IndentLevel="1" HelpContext="%DOC%" />
-                      <!-- Feedback-LED -->
-                      <ParameterRefRef RefId="%AID%_UP-%T%000051_R-%T%00005101" IndentLevel="1" HelpContext="%DOC%" />
-                      <choose ParamRefId="%AID%_UP-%T%000051_R-%T%00005101">
-                        <when test="2 3">
-                          <ComObjectRefRef RefId="%AID%_O-%T%000056_R-%T%00005601" />
+                        <when test="1">
+                          <!-- Feedback-LED -->
+                          <ParameterRefRef RefId="%AID%_UP-%T%000051_R-%T%00005101" IndentLevel="1" HelpContext="%DOC%" />
+                          <choose ParamRefId="%AID%_UP-%T%000051_R-%T%00005101">
+                            <when test="2 3">
+                              <ComObjectRefRef RefId="%AID%_O-%T%000056_R-%T%00005601" />
+                            </when>
+                          </choose>
+                        </when>
+                        <when test="2">
+                          <!-- Feedback-Buzzer -->
+                          <ParameterRefRef RefId="%AID%_UP-%T%000062_R-%T%00006201" IndentLevel="1" HelpContext="%DOC%" />
+                          <choose ParamRefId="%AID%_UP-%T%000062_R-%T%00006201">
+                            <when test="2 3">
+                              <ComObjectRefRef RefId="%AID%_O-%T%000058_R-%T%00005801" />
+                            </when>
+                          </choose>
+                        </when>
+                        <when test="!=0">
+                          <ParameterSeparator Id="%AID%_PS-nnn" Text="" UIHint="HorizontalRuler" />
+                          <ParameterSeparator Id="%AID%_PS-nnn" Text="Tastenfunktionen" UIHint="Headline" />
+                        </when>
+                        <when test="1">
+                          <!-- terminatin key -->
+                          <ParameterRefRef RefId="%AID%_UP-%T%000060_R-%T%00006001" IndentLevel="1" HelpContext="%DOC%" />
+                          <!-- choose delete key -->
+                          <choose ParamRefId="%AID%_UP-%T%000060_R-%T%00006001">
+                            <when test="!=6">
+                              <ParameterRefRef RefId="%AID%_UP-%T%000059_R-%T%00005901" IndentLevel="1" HelpContext="ACC-Taste-zum-loeschen-verwenden" />
+                            </when>
+                            <when test="6">
+                              <ParameterRefRef RefId="%AID%_UP-%T%000059_R-%T%00005902" IndentLevel="1" HelpContext="ACC-Taste-zum-loeschen-verwenden" />
+                            </when>
+                          </choose>
+                        </when>
+                        <when test="2">
+                          <!-- termination key short -->
+                          <ParameterRefRef RefId="%AID%_UP-%T%000061_R-%T%00006101" IndentLevel="1" HelpContext="%DOC%" />
+                          <!-- choose delete key -->
+                          <choose ParamRefId="%AID%_UP-%T%000061_R-%T%00006101">
+                            <when test="!=2">
+                              <ParameterRefRef RefId="%AID%_UP-%T%000059_R-%T%00005902" IndentLevel="1" HelpContext="ACC-Taste-zum-loeschen-verwenden" />
+                            </when>
+                          </choose>
+                        </when>
+                        <when test="1">
+                          <!-- Key F to KO -->
+                          <ParameterRefRef RefId="%AID%_UP-%T%000056_R-%T%00005601" IndentLevel="1" HelpContext="%DOC%" />
+                          <choose ParamRefId="%AID%_UP-%T%000056_R-%T%00005601">
+                            <when test="1">
+                              <ComObjectRefRef RefId="%AID%_O-%T%000059_R-%T%00005901" />
+                            </when>
+                          </choose>
+                          <!-- Key B to KO -->
+                          <ParameterRefRef RefId="%AID%_UP-%T%000057_R-%T%00005701" IndentLevel="1" HelpContext="%DOC%" />
+                          <choose ParamRefId="%AID%_UP-%T%000057_R-%T%00005701">
+                            <when test="1">
+                              <ComObjectRefRef RefId="%AID%_O-%T%000060_R-%T%00006001" />
+                            </when>
+                          </choose>
+                          <!-- Key K to KO -->
+                          <ParameterRefRef RefId="%AID%_UP-%T%000058_R-%T%00005801" IndentLevel="1" HelpContext="%DOC%" />
+                          <choose ParamRefId="%AID%_UP-%T%000058_R-%T%00005801">
+                            <when test="1">
+                              <ComObjectRefRef RefId="%AID%_O-%T%000061_R-%T%00006101" />
+                            </when>
+                          </choose>
                         </when>
                       </choose>
                       <ParameterSeparator Id="%AID%_PS-nnn" Text="" UIHint="HorizontalRuler" />
