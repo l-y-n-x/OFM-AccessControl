@@ -443,10 +443,16 @@ void AccessControl::loop()
     processSyncSend();
     loopNfc();
     keypadBase->loop();
-    // turn off infoLed
-    if (delayCheck(keypadInfoLedTimer, 200))
-        keypadBase->setInfoLed(0,0,0);
     processKeypadBacklight(false);
+    processKeypadFeedback(FeedbackType::Loop);
+    // too long pause between 2 keypress
+    if (keypadLastKeypressTimer > 0 && delayCheck(keypadLastKeypressTimer, ParamACC_KeypressDelayTimeMS))
+    {
+        clearKeypadBuffer(FeedbackType::PauseExceeded);
+        return;
+    }
+
+
 }
 
 void AccessControl::loopNfc(bool testMode)
@@ -885,18 +891,17 @@ bool AccessControl::deleteKey(uint16_t keyId, bool sync)
             
         //###ToDo: remote management status feedback
 
-        keypadBase->setInfoLed(0, 255, 0);
+        processKeypadFeedback(FeedbackType::Ok);
         logInfoP("Key with ID %d deleted.", keyId);
     }
     else
     {
         //###ToDo: remote management status feedback
 
-        keypadBase->setInfoLed(255, 0, 0);
+        processKeypadFeedback(FeedbackType::Failed);
         logInfoP("Key with ID %d not found.", keyId);
     }
 
-    keypadInfoLedTimer = delayTimerInit();
     return success;
 }
 
@@ -938,6 +943,8 @@ void AccessControl::processInputKo(GroupObject& ko)
         case ACC_KoNfcEnrollId:
             processInputKoEnrollNfc(ko);
             break;
+        case ACC_KoKeypadBacklight:
+            processInputKoKeypadBacklight(ko);
         case ACC_KoRemoteManagementCommand:
         case ACC_KoRemoteManagementStatus:
             //###ToDo: Implement
@@ -1055,13 +1062,163 @@ void AccessControl::processInputKoEnrollNfc(GroupObject &ko)
     enrollNfcDuplicateId = ACC_ID_INVALID;
 }
 
+
+void AccessControl::processInputKoKeypadBacklight(GroupObject &ko)
+{
+    // determine DPT of keypad backlight KO
+    Dpt dpt = ParamACC_BacklightIntensity == VAL_Keypad_Backlight_Ko ? DPT_DecimalFactor : DPT_Switch;
+    switchKeypadBacklight((ko.value(dpt)));
+}
+
 void AccessControl::onKeypadKeyPressed(char key)
 {
-    logInfoP("Keypad key pressed: %c", key);
-    keypadBase->setInfoLed(0,0,255);
-    keypadInfoLedTimer = delayTimerInit();
+    bool isFirstKeypress = keypadBacklightTimer == 0;
+    
+    if (key > 0)
+        logDebugP("Keypad key pressed: %c", key);
+    
+    // backlight is always processed on keypress
     processKeypadBacklight(true);
+
+    // send keypress event if enabled
+    if (ParamACC_KeypressTrigger && key != '\0')
+        KoACC_KeypadKeypress.value(true, DPT_Switch);
+    
+    // further processing depends on configured keys
+    if (isFirstKeypress && ParamACC_KeypressIngore)
+        return;
+
+    // do we have a terminal key defined?
+    char terminalKey = keypadKeymap[ParamACC_KeyTermination];
+    // filter all special keys
+    if (ParamACC_KeyProcessingF && terminalKey != 'F' && (key == 'F' || keypadPreviousKey == 'F'))
+    {
+        keypadPreviousKey = key;
+        processKeypadFeedback(key=='F' ? FeedbackType::ButtonPress : FeedbackType::Off);
+        KoACC_KeypadPressF.value(key=='F', DPT_Switch);
+        return;
+    }
+    if (ParamACC_KeyProcessingB && terminalKey != 'B' && (key == 'B' || keypadPreviousKey == 'B'))
+    {
+        keypadPreviousKey = key;
+        processKeypadFeedback(key=='B' ? FeedbackType::ButtonPress : FeedbackType::Off);
+        KoACC_KeypadPressB.value(key=='B', DPT_Switch);
+        return;
+    }
+    if (ParamACC_KeyProcessingK && terminalKey != 'K' &&  (key == 'K' || keypadPreviousKey == 'K'))
+    {
+        keypadPreviousKey = key;
+        processKeypadFeedback(key=='K' ? FeedbackType::ButtonPress : FeedbackType::Off);
+        KoACC_KeypadPressK.value(key=='K', DPT_Switch);
+        return;
+    }
+
+    // is there a special delete key defined?
+    if (ParamACC_KeyProcessingC)
+    {
+        char clearKey = terminalKey == 'C' ? '*' : 'C';
+        if (key == clearKey)
+        { 
+            clearKeypadBuffer(FeedbackType::CodeDeleted);
+            return;
+        }
+    }
+
+    // We process "key up" just till this point
+    keypadPreviousKey = '\0';
+    if (key == '\0')
+        return;
+    else
+        processKeypadFeedback(FeedbackType::Kepress);
+
+    keypadLastKeypressTimer = delayTimerInit();
+    keypadCode[++keypadCodePosition] = key;
+    logInfoP("Current Keycode: %s", keypadCode);
+
+    if (terminalKey == '\0')
+    {
+        checkKeypadCode(keypadCode, false);
+    }
+    else if (terminalKey == key || keypadCodePosition == MAX_KEY_LEN - 1)
+    {
+        checkKeypadCode(keypadCode, true);
+    }
 }
+
+void AccessControl::clearKeypadBuffer(FeedbackType feedbackType)
+{
+    memset(keypadCode, 0, sizeof(keypadCode));
+    keypadCodePosition = -1;
+    keypadLastKeypressTimer = 0;
+    processKeypadFeedback(feedbackType);
+    logInfoP("Current Keycode: <empty>");
+
+}
+
+bool AccessControl::checkKeypadCode(char* enteredCode, bool checkForFail)
+{
+    uint32_t storageOffset = 0;
+    uint8_t storedCode[11] = {}; // space for 0-termination
+    bool found = false;
+    uint16_t foundId = 0;
+    for (uint16_t codeId = 0; codeId < MAX_NFCS; codeId++)
+    {
+        storageOffset = ACC_CalcKeyStorageOffset(codeId);
+        _keypadStorage.read(storageOffset, storedCode, 10);
+        if (!strcmp((const char *)storedCode, enteredCode))
+        {
+            found = true;
+            foundId = codeId;
+            break;
+        }
+    }
+
+    if (found)
+    {
+        logDebugP("Keycode found (id=%u)", foundId);
+        processKeypadScanSuccess(foundId);
+    }
+    else if (checkForFail)
+    {
+        logInfoP("Keycode not found");
+        // KoACC_NfcScanSuccess.value(false, DPT_Switch);
+        
+        // if code failed, reset all authentication action calls
+        for (uint16_t i = 0; i < ParamACC_VisibleActions; i++)
+        _channels[i]->resetActionCall();
+        
+        clearKeypadBuffer(FeedbackType::CodeUnknown);
+        return false;
+    }
+    return true;
+}
+
+void AccessControl::processKeypadScanSuccess(uint16_t foundId, bool external)
+{
+    // KoACC_NfcScanSuccess.value(true, DPT_Switch);
+    // KoACC_NfcScanSuccessId.value(foundId, Dpt(7, 1));
+
+    sendScanAccessData(SyncType::KEY, true, foundId);
+
+    bool actionExecuted = false;
+    for (size_t i = 0; i < ParamKEYACT_KeypadActionCount; i++)
+    {
+        uint16_t codeId = knx.paramWord(KEYACT_FaCodeId + KEYACT_ParamBlockOffset + i * KEYACT_ParamBlockSize);
+        if (codeId == foundId)
+        {
+            uint16_t actionId = knx.paramWord(KEYACT_FaActionId + KEYACT_ParamBlockOffset + i * KEYACT_ParamBlockSize) - 1;
+            if (actionId < ACC_VisibleActions)
+                actionExecuted |= _channels[actionId]->processScan(foundId);
+            else
+                logInfoP("Invalid ActionId: %d", actionId);
+        }
+    }
+
+    if (!external)
+        clearKeypadBuffer(actionExecuted ? FeedbackType::ActionOk : FeedbackType::ActionNotFound);
+}
+
+
 
 void AccessControl::switchKeypadBacklight(bool on) {
 
@@ -1080,13 +1237,16 @@ void AccessControl::switchKeypadBacklight(bool on) {
                 intensity = 64;
                 break;
             case VAL_Keypad_BacklightIntensity_Ko:
-                intensity = KoACC_KeypadBacklight.value(Dpt(5,10));
+                intensity = KoACC_KeypadBacklight.value(DPT_DecimalFactor);
+                keypadBacklightTimer = delayTimerInit();
                 break;            
             default:
                 intensity = 0;
                 break;
         }
     }
+    else
+        keypadBacklightTimer = 0;
     keypadBase->setBackgroundLed(intensity);
 }
 
@@ -1103,10 +1263,63 @@ void AccessControl::processKeypadBacklight(bool keypress) {
         switchKeypadBacklight(1);
         keypadBacklightTimer = delayTimerInit();
     }
-    if (keypadBacklightTimer > 0 && delayCheck(keypadBacklightTimer, 5000))
+    if (keypadBacklightTimer > 0 && ParamACC_BacklightDelayTimeMS > 0 && delayCheck(keypadBacklightTimer, ParamACC_BacklightDelayTimeMS))
         switchKeypadBacklight(0);
 
     keypadBacklightInitialized = true;
+}
+
+void AccessControl::processKeypadFeedback(FeedbackType feedbackType)
+{
+    // provide optical feedback if enabled
+    if (ParamACC_FeedbackLed & 1) 
+    {
+        switch (feedbackType)
+        {
+            case FeedbackType::Loop:
+                if (keypadFeedbackLedTimer > 0 && delayCheck(keypadFeedbackLedTimer, keypadFeedbackLedDuration))
+                    processKeypadFeedback(FeedbackType::Off);
+                break;
+            case FeedbackType::Kepress:
+                keypadBase->setInfoLed(0,0,255); // blue
+                keypadFeedbackLedTimer = delayTimerInit();
+                keypadFeedbackLedDuration = 200;
+                break;
+            case FeedbackType::Ok:
+            case FeedbackType::ActionOk:
+                keypadBase->setInfoLed(0,255,0); // green
+                keypadFeedbackLedTimer = delayTimerInit();
+                keypadFeedbackLedDuration = 1000;
+                break;
+            case FeedbackType::ActionNotFound:
+                keypadBase->setInfoLed(255,255,0); // yellow
+                keypadFeedbackLedTimer = delayTimerInit();
+                keypadFeedbackLedDuration = 1000;
+                break;
+            case FeedbackType::Failed:
+            case FeedbackType::CodeUnknown:
+            case FeedbackType::PauseExceeded:
+                keypadBase->setInfoLed(255,0,0); // red
+                keypadFeedbackLedTimer = delayTimerInit();
+                keypadFeedbackLedDuration = 1000;
+                break;
+            case FeedbackType::CodeDeleted:
+                keypadBase->setInfoLed(255,0,255); // blue
+                keypadFeedbackLedTimer = delayTimerInit();
+                keypadFeedbackLedDuration = 2000;
+                break;
+            case FeedbackType::ButtonPress:
+                keypadBase->setInfoLed(255,255,255); // white
+                keypadFeedbackLedTimer = 0;
+                keypadFeedbackLedDuration = 0;
+                break;
+            default:
+                keypadBase->setInfoLed(0,0,0);
+                keypadFeedbackLedTimer = 0;
+                keypadFeedbackLedDuration = 0;
+                break;
+        }
+    }
 }
 
 void AccessControl::startSyncDelete(SyncType syncType, uint16_t deleteId)
@@ -1567,22 +1780,22 @@ bool AccessControl::processFunctionProperty(uint8_t objectIndex, uint8_t propert
             handleFunctionPropertySearchNfcIdByTag(data, resultData, resultLength);
             return true;
         case 202:
-            handleFunctionPropertySyncKey(data, resultData, resultLength);
+            handleFunctionPropertySyncKeypad(data, resultData, resultLength);
             return true;
         case 203:
-            handleFunctionPropertyDeleteKey(data, resultData, resultLength);
+            handleFunctionPropertyDeleteKeypad(data, resultData, resultLength);
             return true;
         case 204:
-            handleFunctionPropertyChangeKey(data, resultData, resultLength);
+            handleFunctionPropertyChangeKeypad(data, resultData, resultLength);
             return true;
         case 206:
             handleFunctionPropertyResetKeypad(data, resultData, resultLength);
             return true;
         case 211:
-            handleFunctionPropertySearchCodeByKeyId(data, resultData, resultLength);
+            handleFunctionPropertySearchCodeNameByCodeId(data, resultData, resultLength);
             return true;
         case 212:
-            handleFunctionPropertySearchKeyIdByCode(data, resultData, resultLength);
+            handleFunctionPropertySearchCodeIdByCodeName(data, resultData, resultLength);
             return true;
     }
 
@@ -2300,7 +2513,7 @@ void AccessControl::handleFunctionPropertySearchNfcIdByTag(uint8_t *data, uint8_
 }
 
 
-void AccessControl::handleFunctionPropertyChangeKey(uint8_t *data, uint8_t *resultData, uint8_t &resultLength)
+void AccessControl::handleFunctionPropertyChangeKeypad(uint8_t *data, uint8_t *resultData, uint8_t &resultLength)
 {
     logInfoP("Function property keypad: Change request");
     logIndentUp();
@@ -2353,7 +2566,7 @@ void AccessControl::handleFunctionPropertyChangeKey(uint8_t *data, uint8_t *resu
     logIndentDown();
 }
 
-void AccessControl::handleFunctionPropertySyncKey(uint8_t *data, uint8_t *resultData, uint8_t &resultLength)
+void AccessControl::handleFunctionPropertySyncKeypad(uint8_t *data, uint8_t *resultData, uint8_t &resultLength)
 {
     logInfoP("Function property keypad: Sync request");
     logIndentUp();
@@ -2369,7 +2582,7 @@ void AccessControl::handleFunctionPropertySyncKey(uint8_t *data, uint8_t *result
     logIndentDown();
 }
 
-void AccessControl::handleFunctionPropertyDeleteKey(uint8_t *data, uint8_t *resultData, uint8_t &resultLength)
+void AccessControl::handleFunctionPropertyDeleteKeypad(uint8_t *data, uint8_t *resultData, uint8_t &resultLength)
 {
     logInfoP("Function property keypad: Delete request");
     logIndentUp();
@@ -2405,7 +2618,7 @@ void AccessControl::handleFunctionPropertyResetKeypad(uint8_t *data, uint8_t *re
     logIndentDown();
 }
 
-void AccessControl::handleFunctionPropertySearchCodeByKeyId(uint8_t *data, uint8_t *resultData, uint8_t &resultLength)
+void AccessControl::handleFunctionPropertySearchCodeNameByCodeId(uint8_t *data, uint8_t *resultData, uint8_t &resultLength)
 {
     logInfoP("Function property keypad: Search Keypad-Code by KeyId");
     logIndentUp();
@@ -2454,7 +2667,7 @@ void AccessControl::handleFunctionPropertySearchCodeByKeyId(uint8_t *data, uint8
     logIndentDown();
 }
 
-void AccessControl::handleFunctionPropertySearchKeyIdByCode(uint8_t *data, uint8_t *resultData, uint8_t &resultLength)
+void AccessControl::handleFunctionPropertySearchCodeIdByCodeName(uint8_t *data, uint8_t *resultData, uint8_t &resultLength)
 {
     logInfoP("Function property keypad: Search KeyId(s) by Code Name");
     logIndentUp();

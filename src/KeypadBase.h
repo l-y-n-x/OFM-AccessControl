@@ -10,6 +10,7 @@ class KeypadBase
 {
   public:
     using KeyPressedCallback = std::function<void(char)>;
+    
     KeypadBase();
     virtual std::string logPrefix();
     virtual void init(bool testMode = false) = 0;

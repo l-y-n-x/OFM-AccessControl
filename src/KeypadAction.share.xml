@@ -11,21 +11,21 @@
               <ParameterType Id="%AID%_PT-KEYACTNumChannels" Name="KEYACTNumChannels">
                 <TypeNumber SizeInBit="16" Type="unsignedInt" minInclusive="1" maxInclusive="%N%" />
               </ParameterType>
-              <ParameterType Id="%AID%_PT-KeyId" Name="KeyId">
+              <ParameterType Id="%AID%_PT-CodeId" Name="CodeId">
                 <TypeNumber SizeInBit="16" Type="unsignedInt" minInclusive="0" maxInclusive="1499" />
               </ParameterType>
-              <ParameterType Id="%AID%_PT-KeyKey" Name="KeyKey">
+              <ParameterType Id="%AID%_PT-CodeKey" Name="CodeKey">
                 <TypeText SizeInBit="160" />
               </ParameterType>
             </ParameterTypes>
             <Parameters>
               <Union SizeInBit="16">
                 <Memory CodeSegment="%AID%_RS-04-00000" Offset="0" BitOffset="0" />
-                <Parameter Id="%AID%_UP-%T%940001" Name="KeyActionCount" ParameterType="%AID%_PT-FINACTNumChannels" Offset="0" BitOffset="0" Text="Verfügbare Zuordnungen" Value="1" SuffixText=" von %N%" />
+                <Parameter Id="%AID%_UP-%T%940001" Name="KeypadActionCount" ParameterType="%AID%_PT-FINACTNumChannels" Offset="0" BitOffset="0" Text="Verfügbare Zuordnungen" Value="1" SuffixText=" von %N%" />
               </Union>
-              <Parameter Id="%AID%_P-%T%940003" Name="KeyName" ParameterType="%AID%_PT-Text28Byte" Text="Tastencode Name" Value="" />
-              <Parameter Id="%AID%_P-%T%940005" Name="KeyId" ParameterType="%AID%_PT-KeyId" Text="Tastencode ID" Value="0" />
-              <Parameter Id="%AID%_P-%T%940006" Name="KeyActionLine" ParameterType="%AID%_PT-FINACTNumChannels" Text="Zeile für Zuweisung" Value="1" />
+              <Parameter Id="%AID%_P-%T%940003" Name="CodeName" ParameterType="%AID%_PT-Text28Byte" Text="Tastencode Name" Value="" />
+              <Parameter Id="%AID%_P-%T%940005" Name="CodeId" ParameterType="%AID%_PT-CodeId" Text="Tastencode ID" Value="0" />
+              <Parameter Id="%AID%_P-%T%940006" Name="CodeActionLine" ParameterType="%AID%_PT-FINACTNumChannels" Text="Zeile für Zuweisung" Value="1" />
               <Parameter Id="%AID%_P-%T%940007" Name="NumberSearchResultsOverflow" ParameterType="%AID%_PT-ValueDpt5" Text="Anzahl Suchresultate" Value="0" Access="None" />
               <Parameter Id="%AID%_P-%T%940008" Name="NumberSearchResultsText" ParameterType="%AID%_PT-Text5Byte" Text="Anzahl Suchresultate (als Text)" Value="0" Access="None" />
               <Parameter Id="%AID%_P-%T%940009" Name="NumberSearchResultsToDisplay" ParameterType="%AID%_PT-ValueDpt5" Text="Anzahl angezeigter Resultate" Value="0" Access="None" />

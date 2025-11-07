@@ -29,7 +29,6 @@ class KeypadForGira : public KeypadBase
     void updateLeds();
 
     uint16_t _lastKeymap = 0;
-    uint32_t _lastKeypress = 0;
     BS811X _keypad;
 
 #ifdef KEYPAD_PCA9633_ADDR

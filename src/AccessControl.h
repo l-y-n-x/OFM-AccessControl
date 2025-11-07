@@ -36,6 +36,7 @@
 #define NFC_ENROLL_LED_BLINK_INTERVAL 250
 
 #define MAX_KEYS 1500
+#define MAX_KEY_LEN 10
 #define OPENKNX_ACC_FLASH_KEY_MAGIC_WORD 4021287134
 #define OPENKNX_ACC_FLASH_KEY_DATA_SIZE 38 // 10 byte: key code, 28 bytes: person name
 #define ACC_CalcKeyStorageOffset(keyId) keyId * OPENKNX_ACC_FLASH_KEY_DATA_SIZE + 4096 + 1 // first byte free for keypad info storage format version
@@ -97,6 +98,34 @@ class AccessControl : public OpenKNX::Module
         KEY
     };
 
+    enum FeedbackType : uint8_t
+    {
+        Loop, // normal loop call
+        Kepress, // called on keypad key press
+        ActionOk, // action channel success
+        ActionNotFound, // action channel not found
+        CodeUnknown, // keypad code unknown
+        CodeDeleted, // keypad code deleted by user
+        PauseExceeded, // keypad code entry pause time exceeded
+        Ok, // general success
+        Failed, // general failure
+        ButtonPress, // keypress on special button (i.e. Bell)
+        Off // turn led off
+    };
+
+    enum TerminalChar : uint8_t
+    {
+        None = 0,
+        Hash,
+        Asterisk,
+        Function,
+        Bell,
+        Key,
+        Clear
+    };
+
+    static constexpr char keypadKeymap[] = {'\0', '#', '*', 'F', 'B', 'K', 'C'};
+
     static void interruptDisplayTouched();
     static void interruptTouchLeft();
     static void interruptTouchRight();
@@ -110,10 +139,14 @@ class AccessControl : public OpenKNX::Module
     void initNfc(bool testMode = false, uint8_t testModeNfc = 0);
     void loopNfc(bool testMode = false);
     void onKeypadKeyPressed(char key);
+    void clearKeypadBuffer(FeedbackType feedbackType);
+    bool checkKeypadCode(char* code, bool checkForFail);
     void processKeypadBacklight(bool keypress);
+    void processKeypadFeedback(FeedbackType feedbackType);
     void switchKeypadBacklight(bool on);
     void processFingerScanSuccess(uint16_t location, bool external = false);
     void processNfcScanSuccess(uint16_t nfcId, bool external = false);
+    void processKeypadScanSuccess(uint16_t codeId, bool external = false);
     bool enrollFinger(uint16_t location);
     bool deleteFinger(uint16_t location, bool sync = true);
     bool deleteNfc(uint16_t nfcId, bool sync = true);
@@ -129,6 +162,7 @@ class AccessControl : public OpenKNX::Module
     void processInputKoTouchPcbLed(GroupObject &ko);
     void processInputKoEnrollFinger(GroupObject &ko);
     void processInputKoEnrollNfc(GroupObject &ko);
+    void processInputKoKeypadBacklight(GroupObject &ko);
     void handleFunctionPropertyEnrollFinger(uint8_t *data, uint8_t *resultData, uint8_t &resultLength);
     void handleFunctionPropertyWaitEnrollFingerFinished(uint8_t *data, uint8_t *resultData, uint8_t &resultLength);
     void handleFunctionPropertyChangeFinger(uint8_t *data, uint8_t *resultData, uint8_t &resultLength);
@@ -146,12 +180,12 @@ class AccessControl : public OpenKNX::Module
     void handleFunctionPropertyResetNfcScanner(uint8_t *data, uint8_t *resultData, uint8_t &resultLength);
     void handleFunctionPropertySearchTagByNfcId(uint8_t *data, uint8_t *resultData, uint8_t &resultLength);
     void handleFunctionPropertySearchNfcIdByTag(uint8_t *data, uint8_t *resultData, uint8_t &resultLength);
-    void handleFunctionPropertyChangeKey(uint8_t *data, uint8_t *resultData, uint8_t &resultLength);
-    void handleFunctionPropertySyncKey(uint8_t *data, uint8_t *resultData, uint8_t &resultLength);
-    void handleFunctionPropertyDeleteKey(uint8_t *data, uint8_t *resultData, uint8_t &resultLength);
+    void handleFunctionPropertyChangeKeypad(uint8_t *data, uint8_t *resultData, uint8_t &resultLength);
+    void handleFunctionPropertySyncKeypad(uint8_t *data, uint8_t *resultData, uint8_t &resultLength);
+    void handleFunctionPropertyDeleteKeypad(uint8_t *data, uint8_t *resultData, uint8_t &resultLength);
     void handleFunctionPropertyResetKeypad(uint8_t *data, uint8_t *resultData, uint8_t &resultLength);
-    void handleFunctionPropertySearchCodeByKeyId(uint8_t *data, uint8_t *resultData, uint8_t &resultLength);
-    void handleFunctionPropertySearchKeyIdByCode(uint8_t *data, uint8_t *resultData, uint8_t &resultLength);
+    void handleFunctionPropertySearchCodeNameByCodeId(uint8_t *data, uint8_t *resultData, uint8_t &resultLength);
+    void handleFunctionPropertySearchCodeIdByCodeName(uint8_t *data, uint8_t *resultData, uint8_t &resultLength);
     static void delayCallback(uint32_t period);
     void runTestMode(uint8_t testModeNfc, bool testModeKeypad);
 
@@ -219,9 +253,14 @@ class AccessControl : public OpenKNX::Module
 
     // KeypadForGira keyapdForGira;
     KeypadBase *keypadBase = nullptr;
-    uint32_t keypadInfoLedTimer = 0;
+    uint32_t keypadFeedbackLedTimer = 0;
+    uint16_t keypadFeedbackLedDuration = 0;
     uint32_t keypadBacklightTimer = 0;
     bool keypadBacklightInitialized = false;
+    uint32_t keypadLastKeypressTimer = 0;
+    char keypadPreviousKey = '\0';
+    char keypadCode[MAX_KEY_LEN + 1] =  {0};
+    int8_t keypadCodePosition = -1;
 };
 
 extern AccessControl openknxAccessControl;

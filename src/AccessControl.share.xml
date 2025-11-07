@@ -200,17 +200,17 @@
                   <Enumeration Text="kein Abschluss" Value="0" Id="%ENID%" />
                   <Enumeration Text="# - Doppelkreuz" Value="1" Id="%ENID%" />
                   <Enumeration Text="* - Stern" Value="2" Id="%ENID%" />
-                </TypeRestriction>
-              </ParameterType>
-              <ParameterType Id="%AID%_PT-TerminationKeyExtended" Name="TerminationKeyExtended">
-                <TypeRestriction Base="Value" SizeInBit="3" UIHint="DropDown">
-                  <Enumeration Text="kein Abschluss" Value="0" Id="%ENID%" />
-                  <Enumeration Text="# - Doppelkreuz" Value="1" Id="%ENID%" />
-                  <Enumeration Text="* - Stern" Value="2" Id="%ENID%" />
                   <Enumeration Text="F - Funktion" Value="3" Id="%ENID%" />
                   <Enumeration Text="B - Klingel" Value="4" Id="%ENID%" />
                   <Enumeration Text="K - Schlüssel" Value="5" Id="%ENID%" />
                   <Enumeration Text="C - Löschen" Value="6" Id="%ENID%" />
+                </TypeRestriction>
+              </ParameterType>
+              <ParameterType Id="%AID%_PT-TerminationKeyShort" Name="TerminationKeyShort">
+                <TypeRestriction Base="Value" SizeInBit="3" UIHint="DropDown">
+                  <Enumeration Text="kein Abschluss" Value="0" Id="%ENID%" />
+                  <Enumeration Text="# - Doppelkreuz" Value="1" Id="%ENID%" />
+                  <Enumeration Text="* - Stern" Value="2" Id="%ENID%" />
                 </TypeRestriction>
               </ParameterType>
             </ParameterTypes>
@@ -242,12 +242,12 @@
               <Parameter Id="%AID%_P-%T%000037" Name="NfcEdit" ParameterType="%AID%_PT-NfcEdit" Text="NFC-Tag" Value="0" />
               <Parameter Id="%AID%_P-%T%000040" Name="KeypadEdit" ParameterType="%AID%_PT-KeypadEdit" Text="Tastencode" Value="1" />
               <Parameter Id="%AID%_P-%T%000041" Name="ResetKey" ParameterType="%AID%_PT-OnOffYesNo" Text="Alle Tastencodes löschen?" Value="0" />
-              <Parameter Id="%AID%_P-%T%000042" Name="SyncKeyId" ParameterType="%AID%_PT-KeyId" Text="Tastencode ID synchronisieren" Value="0" />
-              <Parameter Id="%AID%_P-%T%000043" Name="EnrollKeypadName" ParameterType="%AID%_PT-Text28Byte" Text="Tastencode Name" Value="" />
-              <Parameter Id="%AID%_P-%T%000044" Name="EnrollKeypadId" ParameterType="%AID%_PT-NfcId" Text="Tastencode ID" Value="0" />
-              <Parameter Id="%AID%_P-%T%000045" Name="EnrollKeypadKeycode" ParameterType="%AID%_PT-NfcKey" Text="Tastencode" Value="" />
-              <Parameter Id="%AID%_P-%T%000046" Name="DeleteKeypadId" ParameterType="%AID%_PT-NfcId" Text="Tastencode ID" Value="0" />
-              <Union SizeInBit="88">
+              <Parameter Id="%AID%_P-%T%000042" Name="SyncCodeId" ParameterType="%AID%_PT-CodeId" Text="Tastencode ID synchronisieren" Value="0" />
+              <Parameter Id="%AID%_P-%T%000043" Name="EnrollCodeName" ParameterType="%AID%_PT-Text28Byte" Text="Tastencode Name" Value="" />
+              <Parameter Id="%AID%_P-%T%000044" Name="EnrollCodeId" ParameterType="%AID%_PT-CodeId" Text="Tastencode ID" Value="0" />
+              <Parameter Id="%AID%_P-%T%000045" Name="EnrollCodeKey" ParameterType="%AID%_PT-CodeKey" Text="Tastencode" Value="" />
+              <Parameter Id="%AID%_P-%T%000046" Name="DeleteCodeId" ParameterType="%AID%_PT-CodeId" Text="Tastencode ID" Value="0" />
+              <Union SizeInBit="104">
                 <Memory CodeSegment="%AID%_RS-04-00000" Offset="0" BitOffset="0" />
                 <Parameter Id="%AID%_UP-%T%000001" Name="VisibleActions" ParameterType="%AID%_PT-FINNumChannels" Offset="0" BitOffset="0" Text="Verfügbare Aktionen" Value="3" SuffixText=" von %N%" />
                 <Parameter Id="%AID%_UP-%T%000008" Name="AuthDelayBase" ParameterType="%AID%_PT-DelayBase" Offset="2" BitOffset="0" Text="Zeitbasis" Value="0" />
@@ -275,12 +275,12 @@
                 <!-- Keypress Delay Pattern 2 Byte -->
                 <Parameter Id="%AID%_UP-%T%000054" Name="KeypressDelayBase" ParameterType="%AID%_PT-DelayBaseMinuteSecond" Offset="10" BitOffset="0" Text="Zeitbasis" Value="0" />
                 <Parameter Id="%AID%_UP-%T%000055" Name="KeypressDelayTime" ParameterType="%AID%_PT-DelayTime" Offset="10" BitOffset="2" Text="Zeit" Value="5" />
-                <Parameter Id="%AID%_UP-%T%000056" Name="KeyProcessingF" ParameterType="%AID%_PT-OnOffYesNo" Offset="11" BitOffset="0" Text="Taste F als KO verfügbar machen" Value="0" />
-                <Parameter Id="%AID%_UP-%T%000057" Name="KeyProcessingB" ParameterType="%AID%_PT-OnOffYesNo" Offset="11" BitOffset="1" Text="Taste 'Klingel' als KO verfügbar machen" Value="0" />
-                <Parameter Id="%AID%_UP-%T%000058" Name="KeyProcessingK" ParameterType="%AID%_PT-OnOffYesNo" Offset="11" BitOffset="2" Text="Taste 'Schlüssel' als KO verfügbar machen" Value="0" />
-                <Parameter Id="%AID%_UP-%T%000060" Name="KeyTermination" ParameterType="%AID%_PT-TerminationKeyExtended" Offset="11" BitOffset="3" Text="Explizites Abschlusszeichen" Value="0" />
-                <Parameter Id="%AID%_UP-%T%000061" Name="KeyTerminationShort" ParameterType="%AID%_PT-TerminationKey" Offset="11" BitOffset="3" Text="Explizites Abschlusszeichen" Value="0" />
-                <Parameter Id="%AID%_UP-%T%000062" Name="FeedbackBuzzer" ParameterType="%AID%_PT-FeedbackBuzzer" Offset="11" BitOffset="6" Text="Ansteuerung des Rückmelde-Buzzers" Value="1" />
+                <Parameter Id="%AID%_UP-%T%000056" Name="KeyProcessingF" ParameterType="%AID%_PT-OnOffYesNo" Offset="12" BitOffset="0" Text="Taste F als KO verfügbar machen" Value="0" />
+                <Parameter Id="%AID%_UP-%T%000057" Name="KeyProcessingB" ParameterType="%AID%_PT-OnOffYesNo" Offset="12" BitOffset="1" Text="Taste 'Klingel' als KO verfügbar machen" Value="0" />
+                <Parameter Id="%AID%_UP-%T%000058" Name="KeyProcessingK" ParameterType="%AID%_PT-OnOffYesNo" Offset="12" BitOffset="2" Text="Taste 'Schlüssel' als KO verfügbar machen" Value="0" />
+                <Parameter Id="%AID%_UP-%T%000062" Name="FeedbackBuzzer" ParameterType="%AID%_PT-FeedbackBuzzer" Offset="12" BitOffset="3" Text="Ansteuerung des Rückmelde-Buzzers" Value="1" />
+                <Parameter Id="%AID%_UP-%T%000060" Name="KeyTermination" ParameterType="%AID%_PT-TerminationKey" Offset="12" BitOffset="5" Text="Explizites Abschlusszeichen" Value="0" />
+                <Parameter Id="%AID%_UP-%T%000061" Name="KeyTerminationShort" ParameterType="%AID%_PT-TerminationKeyShort" Offset="12" BitOffset="5" Text="Explizites Abschlusszeichen" Value="0" />
               </Union>
             </Parameters>
             <ParameterRefs>
@@ -910,7 +910,7 @@
                           <ParameterSeparator Id="%AID%_PS-nnn" Text="Tastenfunktionen" UIHint="Headline" />
                         </when>
                         <when test="1">
-                          <!-- terminatin key -->
+                          <!-- termination key -->
                           <ParameterRefRef RefId="%AID%_UP-%T%000060_R-%T%00006001" IndentLevel="1" HelpContext="%DOC%" />
                           <!-- choose delete key -->
                           <choose ParamRefId="%AID%_UP-%T%000060_R-%T%00006001">
@@ -933,25 +933,37 @@
                           </choose>
                         </when>
                         <when test="1">
-                          <!-- Key F to KO -->
-                          <ParameterRefRef RefId="%AID%_UP-%T%000056_R-%T%00005601" IndentLevel="1" HelpContext="%DOC%" />
-                          <choose ParamRefId="%AID%_UP-%T%000056_R-%T%00005601">
-                            <when test="1">
-                              <ComObjectRefRef RefId="%AID%_O-%T%000059_R-%T%00005901" />
+                          <choose ParamRefId="%AID%_UP-%T%000060_R-%T%00006001">
+                            <when test="!=3">
+                              <!-- Key F to KO -->
+                              <ParameterRefRef RefId="%AID%_UP-%T%000056_R-%T%00005601" IndentLevel="1" HelpContext="%DOC%" />
+                              <choose ParamRefId="%AID%_UP-%T%000056_R-%T%00005601">
+                                <when test="1">
+                                  <ComObjectRefRef RefId="%AID%_O-%T%000059_R-%T%00005901" />
+                                </when>
+                              </choose>
                             </when>
                           </choose>
-                          <!-- Key B to KO -->
-                          <ParameterRefRef RefId="%AID%_UP-%T%000057_R-%T%00005701" IndentLevel="1" HelpContext="%DOC%" />
-                          <choose ParamRefId="%AID%_UP-%T%000057_R-%T%00005701">
-                            <when test="1">
-                              <ComObjectRefRef RefId="%AID%_O-%T%000060_R-%T%00006001" />
+                          <choose ParamRefId="%AID%_UP-%T%000060_R-%T%00006001">
+                            <when test="!=4">
+                              <!-- Key B to KO -->
+                              <ParameterRefRef RefId="%AID%_UP-%T%000057_R-%T%00005701" IndentLevel="1" HelpContext="%DOC%" />
+                              <choose ParamRefId="%AID%_UP-%T%000057_R-%T%00005701">
+                                <when test="1">
+                                  <ComObjectRefRef RefId="%AID%_O-%T%000060_R-%T%00006001" />
+                                </when>
+                              </choose>
                             </when>
                           </choose>
-                          <!-- Key K to KO -->
-                          <ParameterRefRef RefId="%AID%_UP-%T%000058_R-%T%00005801" IndentLevel="1" HelpContext="%DOC%" />
-                          <choose ParamRefId="%AID%_UP-%T%000058_R-%T%00005801">
-                            <when test="1">
-                              <ComObjectRefRef RefId="%AID%_O-%T%000061_R-%T%00006101" />
+                          <choose ParamRefId="%AID%_UP-%T%000060_R-%T%00006001">
+                            <when test="!=5">
+                              <!-- Key K to KO -->
+                              <ParameterRefRef RefId="%AID%_UP-%T%000058_R-%T%00005801" IndentLevel="1" HelpContext="%DOC%" />
+                              <choose ParamRefId="%AID%_UP-%T%000058_R-%T%00005801">
+                                <when test="1">
+                                  <ComObjectRefRef RefId="%AID%_O-%T%000061_R-%T%00006101" />
+                                </when>
+                              </choose>
                             </when>
                           </choose>
                         </when>

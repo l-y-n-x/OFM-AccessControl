@@ -52,6 +52,11 @@ void KeypadForGira::loop(bool testMode)
     }
 
     uint16_t newlyPressed = keymap & ~_lastKeymap;
+
+    // send also a key up event
+    if (_callback && keymap == 0 && _lastKeymap != 0 && !(_lastKeymap & (_lastKeymap - 1)))
+        _callback('\0');
+
     _lastKeymap = keymap;
 
     if (!_callback || newlyPressed == 0)
@@ -67,8 +72,6 @@ void KeypadForGira::loop(bool testMode)
             char resolved = mapKey(index);
             if (resolved != '\0')
                 _callback(resolved);
-                logInfoP("Last keypress: %u", millis()-_lastKeypress);
-                _lastKeypress = delayTimerInit();
         }
     }
 }

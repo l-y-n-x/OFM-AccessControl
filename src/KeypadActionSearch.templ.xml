@@ -7,9 +7,9 @@
         <ApplicationProgram Id="%AID%" ApplicationNumber="AF" ApplicationVersion="1" ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="ACC" LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="de" DynamicTableManagement="false" Linkable="false" MinEtsVersion="4.0">
           <Static>
             <Parameters>
-              <Parameter Id="%AID%_P-%T%95%CC%00" Name="Key%C%Name" ParameterType="%AID%_PT-Text28Byte" Text="Tastencode Name %C%" Value="" Access="Read" />
-              <Parameter Id="%AID%_P-%T%95%CC%02" Name="Key%C%Id" ParameterType="%AID%_PT-KeyId" Text="Tastencode ID %C%" Value="0" Access="Read" />
-              <Parameter Id="%AID%_P-%T%95%CC%03" Name="Key%C%ActionLine" ParameterType="%AID%_PT-KEYACTNumChannels" Text="Zeile %C% für Zuweisung" Value="1" />
+              <Parameter Id="%AID%_P-%T%95%CC%00" Name="Code%C%Name" ParameterType="%AID%_PT-Text28Byte" Text="Tastencode Name %C%" Value="" Access="Read" />
+              <Parameter Id="%AID%_P-%T%95%CC%02" Name="Code%C%Id" ParameterType="%AID%_PT-CodeId" Text="Tastencode ID %C%" Value="0" Access="Read" />
+              <Parameter Id="%AID%_P-%T%95%CC%03" Name="Keypad%C%ActionLine" ParameterType="%AID%_PT-KEYACTNumChannels" Text="Zeile %C% für Zuweisung" Value="1" />
             </Parameters>
             <ParameterRefs>
               <ParameterRef Id="%AID%_P-%T%95%CC%00_R-%T%95%CC%0001" RefId="%AID%_P-%T%95%CC%00" />

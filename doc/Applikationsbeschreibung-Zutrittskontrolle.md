@@ -495,7 +495,15 @@ Erscheint als Unterseite der Seite "Allgemein".
 
 Ein Keypad dient zur Eingabe eines Tastencodes und kann auch als Autorisierungsmechanismus für die AccessControl Hardware verwendet werden. 
 
-Ein Tastencode ist eine Folge von über das Keypad eingebbaren Zeichen. Man könnte auf die Idee kommen, einen Tastencode direkt mit einer Aktion zu verbinden, um so diese Aktion auszuführen. Ein solches Verfahren hätte den Nachteil, dass man sich nur auf die möglichen Zeichen (bzw. Tasten) eines bestimmten Keypad beschränken müsste. Außerden würden Änderungen eines Codes (weil diese z.B. durch abgucken zu vielen Menschen bekannt ist) dazu führen, dass dieser Code in allen zugehörigen Aktionen geändert werden müsste. Dies würde dann verhindern, dass Änderungen von Tastencodes synchronisiert werden können, da Aktionen nicht zwischen verschiedenen Geräten synchronisiert werden.
+Ein Tastencode ist eine Folge von über das Keypad eingebbaren Zeichen. Die Applikation untersützt verschiedene Arten von Tastencode-Eingaben:
+
+* **feste Länge** - es muss immer eine besimmte Anzahl von Zeichen eingegeben werden, danach ist klar, ob der Code gültig ist oder nicht.
+* **terminiert** - es wird eine variable Anzahl von Zeichen eingegeben, gefolgt von einem festgelegten Ende-Zeichen. Danach ist klar, ob der Code gültig ist oder nicht.
+* **variable Länge** - es wird eine variable Anzahl von Zeichen eingegeben. Sobald ein korrekter Code erkannt wird, erfolgt eine Aktion. In allen anderen Fällen ist der Code nicht gültig.
+
+Für die terminierte Eingabe kann man in der Applikation ein Zeichen festlegen. Für den Fall, dass kein Ende-Zeichen festgelegt wurde, entscheidet die Applikation anhand der Länge der vorhandenen Codes, ob mit fester oder variabler Länge gearbeiet wird.
+
+Man könnte auf die Idee kommen, einen Tastencode direkt mit einer Aktion zu verbinden, um so diese Aktion auszuführen. Ein solches Verfahren hätte den Nachteil, dass man sich nur auf die möglichen Zeichen (bzw. Tasten) eines bestimmten Keypad beschränken müsste. Außerden würden Änderungen eines Codes (weil diese z.B. durch abgucken zu vielen Menschen bekannt ist) dazu führen, dass dieser Code in allen zugehörigen Aktionen geändert werden müsste. Dies würde dann verhindern, dass Änderungen von Tastencodes synchronisiert werden können, da Aktionen nicht zwischen verschiedenen Geräten synchronisiert werden.
 
 Deswegen wird beim Keyped das gleiche Verfahren angewendet wie schon beim Fingerprint und bei NFC-Scanner: Es gibt eine Art Anlernprozess - nur ist dieser einfach direkt in der ETS vornehmbar: Man weist einfach einem Tastencode eine ID zu, diese werden mit den Tastencodes zusammen zwischen verschiedenen Geräten synchronisiert und können dann in Aktionen verwendet werden.
 

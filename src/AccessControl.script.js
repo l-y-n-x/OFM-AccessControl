@@ -900,29 +900,29 @@ function ACC_resetNfcScanner(device, online, progress, context) {
 }
 
 function ACC_searchKeypadId(device, online, progress, context) {
-    var parNfcName = device.getParameterByName("NFCACT_NfcName");
-    //var parNfcTagUid = device.getParameterByName("NFCACT_NfcTagUid");
-    var parNfcId = device.getParameterByName("NFCACT_NfcId");
-    var parNumberSearchResultsOverflow = device.getParameterByName("NFCACT_NumberSearchResultsOverflow");
-    var parNumberSearchResultsText = device.getParameterByName("NFCACT_NumberSearchResultsText");
-    var parNumberSearchResultsToDisplay = device.getParameterByName("NFCACT_NumberSearchResultsToDisplay");
+    var parCodeName = device.getParameterByName("KEYACT_CodeName");
+    //var parKeypadTagUid = device.getParameterByName("KEYACT_KeypadTagUid");
+    var parCodeId = device.getParameterByName("KEYACT_CodeId");
+    var parNumberSearchResultsOverflow = device.getParameterByName("KEYACT_NumberSearchResultsOverflow");
+    var parNumberSearchResultsText = device.getParameterByName("KEYACT_NumberSearchResultsText");
+    var parNumberSearchResultsToDisplay = device.getParameterByName("KEYACT_NumberSearchResultsToDisplay");
 
     parNumberSearchResultsOverflow.value = 0;
     parNumberSearchResultsToDisplay.value = 0;
 
-    progress.setText("NFC: Tag ID zum Tag Namen " + parNfcName.value + " suchen...");
+    progress.setText("KEYPAD: Tag ID zum Tag Namen " + parCodeName.value + " suchen...");
     online.connect();
 
-    var data = [112]; // internal function ID
+    var data = [212]; // internal function ID
 
-    // NFC tag UID (10 bytes, currently always empty)
+    // Code (10 bytes, currently always empty)
     for (var i = 0; i < 10; ++i) {
         data = data.concat(0);
     }
 
-    // NFC name
-    for (var i = 0; i < parNfcName.value.length; ++i) {
-        var code = parNfcName.value.charCodeAt(i);
+    // Code name
+    for (var i = 0; i < parCodeName.value.length; ++i) {
+        var code = parCodeName.value.charCodeAt(i);
         data = data.concat([code]);
     }
     data = data.concat(0); // null-terminated string
@@ -930,11 +930,11 @@ function ACC_searchKeypadId(device, online, progress, context) {
     var resp = online.invokeFunctionProperty(160, 3, data);
     if (resp[0] != 0) {
         if (resp[0] == 1) {
-            progress.setText("NFC: Tag ID zum Tag Namen " + parNfcName.value + " nicht gefunden.");
+            progress.setText("KEYPAD: Tastencode ID zum Code Namen " + parCodeName.value + " nicht gefunden.");
             online.disconnect();
             return;
         } else {
-            throw new Error("NFC: Es ist ein unbekannter Fehler aufgetreten!");
+            throw new Error("KEYPAD: Es ist ein unbekannter Fehler aufgetreten!");
         }
     }
 
@@ -943,10 +943,10 @@ function ACC_searchKeypadId(device, online, progress, context) {
     var numRes = (resp.length - 3) / 40;
     var totalMatches = resp[1] << 8 | resp[2];
     info("totalMatches " + totalMatches);
-    progress.setText("NFC: " + totalMatches + " Tag ID(s) zum Tag Namen " + parNfcName.value + " gefunden.");
+    progress.setText("KEYPAD: " + totalMatches + " Tastencode ID(s) zum Code Namen " + parCodeName.value + " gefunden.");
 
     // following up to 10 results in total
-    // always 2 bytes nfcId, 10 byte UID and 28 bytes nfcName
+    // always 2 bytes codeId, 10 byte UID and 28 bytes codeName
     info("Bevor: " + parNumberSearchResultsOverflow.value);
     parNumberSearchResultsText.value = totalMatches;
     parNumberSearchResultsToDisplay.value = numRes;
@@ -956,145 +956,145 @@ function ACC_searchKeypadId(device, online, progress, context) {
 
     info("Danach: " + parNumberSearchResultsOverflow.value);
     for (var row = 1; row <= numRes; row++) {
-        // info("NFCACT_Person" + row + "Name");
-        parNfcName = device.getParameterByName("NFCACTSER_Nfc" + row + "Name");
-        parNfcId = device.getParameterByName("NFCACTSER_Nfc" + row + "Id");
+        // info("KEYACT_Person" + row + "Name");
+        parCodeName = device.getParameterByName("KEYACTSER_Code" + row + "Name");
+        parCodeId = device.getParameterByName("KEYACTSER_Code" + row + "Id");
 
         var res = (row - 1) * 40 + 3;
         info("res " + row + ": " + res);
-        var nfcId = resp[res + 0] << 8 | resp[res + 1];
-        info("nfcId: " + nfcId);
+        var codeId = resp[res + 0] << 8 | resp[res + 1];
+        info("codeId: " + codeId);
         
         // NFC tag UID, 10 bytes, currently ignored
 
-        var nfcName = "";
+        var codeName = "";
         for (var i = res + 12; i < res + 40; ++i) {
             if (resp[i] == 0)
                 break; // null-termination
 
-            nfcName += String.fromCharCode(resp[i]);
+            codeName += String.fromCharCode(resp[i]);
         }
-        info("nfcName: " + nfcName);
+        info("codeName: " + codeName);
 
-        parNfcName.value = nfcName;
-        parNfcId.value = nfcId;
+        parCodeName.value = codeName;
+        parCodeId.value = codeId;
     }
 }
 
 function ACC_searchKeypadName(device, online, progress, context) {
-    var parNfcName = device.getParameterByName("NFCACT_NfcName");
-    //var parNfcTagUid = device.getParameterByName("NFCACT_NfcTagUid");
-    var parNfcId = device.getParameterByName("NFCACT_NfcId");
-    var parNumberSearchResultsOverflow = device.getParameterByName("NFCACT_NumberSearchResultsOverflow");
-    var parNumberSearchResultsToDisplay = device.getParameterByName("NFCACT_NumberSearchResultsToDisplay");
+    var parCodeName = device.getParameterByName("KEYACT_CodeName");
+    //var parKeypadTagUid = device.getParameterByName("KEYACT_KeypadTagUid");
+    var parCodeId = device.getParameterByName("KEYACT_CodeId");
+    var parNumberSearchResultsOverflow = device.getParameterByName("KEYACT_NumberSearchResultsOverflow");
+    var parNumberSearchResultsToDisplay = device.getParameterByName("KEYACT_NumberSearchResultsToDisplay");
 
     parNumberSearchResultsOverflow.value = 0;
-    var nfcId = parNfcId.value;
+    var codeId = parCodeId.value;
 
-    progress.setText("NFC: Tag Namen zu Tag ID " + nfcId + " suchen...");
+    progress.setText("KEYPAD: Code Namen zur Tastencode ID " + codeId + " suchen...");
     online.connect();
 
-    var data = [111]; // internal function ID
-    data = data.concat((nfcId & 0x0000ff00) >> 8, (nfcId & 0x000000ff));
+    var data = [211]; // internal function ID
+    data = data.concat((codeId & 0x0000ff00) >> 8, (codeId & 0x000000ff));
 
     var resp = online.invokeFunctionProperty(160, 3, data);
     if (resp[0] != 0) {
         if (resp[0] == 1) {
-            progress.setText("NFC: Tag Namen zu Tag ID " + nfcId + " nicht gefunden.");
+            progress.setText("KEYPAD: Code Namen zu Tastencode ID " + codeId + " nicht gefunden.");
             online.disconnect();
             return;
         } else {
-            throw new Error("NFC: Es ist ein unbekannter Fehler aufgetreten!");
+            throw new Error("KEYPAD: Es ist ein unbekannter Fehler aufgetreten!");
         }
     }
 
     online.disconnect();
-    progress.setText("NFC: Tag Namen zu Tag ID " + nfcId + " gefunden.");
+    progress.setText("KEYPAD: Code Namen zu Tastencode ID " + codeId + " gefunden.");
 
     // NFC tag UID, 10 bytes, currently ignored
 
-    var nfcName = "";
+    var codeName = "";
     for (var i = 11; i < resp.length; ++i) {
         if (resp[i] == 0)
             break; // null-termination
       
-        nfcName += String.fromCharCode(resp[i]);
+        codeName += String.fromCharCode(resp[i]);
     }
 
     parNumberSearchResultsToDisplay.value = 1;
 
-    parNfcName = device.getParameterByName("NFCACTSER_Nfc1Name");
-    parNfcId = device.getParameterByName("NFCACTSER_Nfc1Id");
-    parNfcName.value = nfcName;
-    parNfcId.value = nfcId;
+    parCodeName = device.getParameterByName("KEYACTSER_Code1Name");
+    parCodeId = device.getParameterByName("KEYACTSER_Code1Id");
+    parCodeName.value = codeName;
+    parCodeId.value = codeId;
 }
 
 function ACC_checkKeypadAction(device, online, progress, context) {
-    var parActionId = device.getParameterByName("NFCACT_Fa" + context.Channel + "ActionId");
-    var parNfcId = device.getParameterByName("NFCACT_Fa" + context.Channel + "NfcId");
-    var parNfcActionInfo = device.getParameterByName("NFCACT_Fa" + context.Channel + "NfcActionInfo");
+    var parActionId = device.getParameterByName("KEYACT_Fa" + context.Channel + "ActionId");
+    var parCodeId = device.getParameterByName("KEYACT_Fa" + context.Channel + "CodeId");
+    var parKeypadActionInfo = device.getParameterByName("KEYACT_Fa" + context.Channel + "KeypadActionInfo");
     var parVisibleActions = device.getParameterByName("ACC_VisibleActions");
 
     if (parActionId.value <= parVisibleActions.value) {
 
-        progress.setText("NFC: Tag zu NFC ID " + parNfcId.value + " suchen...");
+        progress.setText("KEYPAD: Code zu Tastencode ID " + parCodeId.value + " suchen...");
         online.connect();
     
-        var data = [111]; // internal function ID
-        data = data.concat((parNfcId.value & 0x0000ff00) >> 8, (parNfcId.value & 0x000000ff));
+        var data = [211]; // internal function ID
+        data = data.concat((parCodeId.value & 0x0000ff00) >> 8, (parCodeId.value & 0x000000ff));
 
-        var nfcName = "";
+        var codeName = "";
 
         var resp = online.invokeFunctionProperty(160, 3, data);
         if (resp[0] != 0) {
-            progress.setText("NFC: Tag zu NFC ID " + parNfcId.value + " nicht gefunden.");
+            progress.setText("KEYPAD: Code zu Tastencode ID " + parCodeId.value + " nicht gefunden.");
             online.disconnect();
             return;
         } else {
             online.disconnect();
-            progress.setText("NFC: Tag zu NFC ID " + parNfcId.value + " gefunden.");
+            progress.setText("KEYPAD: Code zu Tastencode ID " + parCodeId.value + " gefunden.");
         
-            personNfc = resp[1];
+            personKeypad = resp[1];
             for (var i = 11; i < resp.length; ++i) {
                 if (resp[i] == 0)
                     break; // null-termination
             
-                nfcName += String.fromCharCode(resp[i]);
+                codeName += String.fromCharCode(resp[i]);
             }
         }
 
         var parActionDescription = device.getParameterByName("ACC_Act" + parActionId.value + "Description");
-        parNfcActionInfo.value = (parActionDescription.value + "; " + nfcName).substring(0, 80);
+        parKeypadActionInfo.value = (parActionDescription.value + "; " + codeName).substring(0, 80);
     } else {
-        parNfcActionInfo.value = "Aktion ist nicht definiert, NFC wurde nicht ermittelt";
+        parKeypadActionInfo.value = "Aktion ist nicht definiert, Code wurde nicht ermittelt";
     }
 }
 
 function ACC_changeKeypad(device, online, progress, context) {
-    var parNfcId = device.getParameterByName("ACC_EnrollNfcId");
-    var parTagUid = device.getParameterByName("ACC_EnrollNfcKey");
-    var parTagName = device.getParameterByName("ACC_EnrollTagName");
+    var parCodeId = device.getParameterByName("ACC_EnrollCodeId");
+    var parCode = device.getParameterByName("ACC_EnrollCodeKey");
+    var parCodeName = device.getParameterByName("ACC_EnrollCodeName");
 
-    progress.setText("NFC: NFC ID " + parNfcId.value + " ändern...");
+    progress.setText("KEYPAD: Tastencode ID " + parCodeId.value + " ändern...");
     online.connect();
 
-    var data = [104]; // internal function ID
+    var data = [204]; // internal function ID
 
-    // finger ID
-    data = data.concat((parNfcId.value & 0x0000ff00) >> 8, (parNfcId.value & 0x000000ff));
+    // code ID
+    data = data.concat((parCodeId.value & 0x0000ff00) >> 8, (parCodeId.value & 0x000000ff));
 
-    // tag UID
-    var tarUidByteCount = parTagUid.value.length / 2;
-    for (var i = 0; i < tarUidByteCount; ++i) {
-        data = data.concat(parseInt(parTagUid.value.substr(i * 2, 2), 16));
+    // Code key
+    var codeByteCount = parCode.value.length;
+    for (var i = 0; i < codeByteCount; ++i) {
+        data = data.concat([parCode.value.charCodeAt(i)]);
     }
-    for (var i = tarUidByteCount; i < 10; ++i) {
+    for (var i = codeByteCount; i < 10; ++i) {
         data = data.concat(0); // fill up with zeros if < 10 bytes
     }
 
     // person name
-    for (var i = 0; i < parTagName.value.length; ++i) {
-        var code = parTagName.value.charCodeAt(i);
+    for (var i = 0; i < parCodeName.value.length; ++i) {
+        var code = parCodeName.value.charCodeAt(i);
         data = data.concat([code]);
     }
     data = data.concat(0); // null-terminated string
@@ -1102,71 +1102,71 @@ function ACC_changeKeypad(device, online, progress, context) {
     var resp = online.invokeFunctionProperty(160, 3, data);
     if (resp[0] != 0) {
         if (resp[0] == 1) {
-            throw new Error("NFC: NFC ID " + parNfcId.value + " nicht gefunden!");
+            throw new Error("KEYPAD: Tastencode ID " + parCodeId.value + " nicht gefunden!");
         } else {
-            throw new Error("NFC: Es ist ein unbekannter Fehler aufgetreten!");
+            throw new Error("KEYPAD: Es ist ein unbekannter Fehler aufgetreten!");
         }
     }
 
     online.disconnect();
-    progress.setText("NFC: NFC ID " + parNfcId.value + " geändert.");
+    progress.setText("KEYPAD: Tastencode ID " + parCodeId.value + " geändert.");
 }
 
 function ACC_syncKeypad(device, online, progress, context) {
-    var parNfcId = device.getParameterByName("ACC_SyncNfcId");
+    var parCodeId = device.getParameterByName("ACC_SyncCodeId");
 
-    progress.setText("NFC: NFC ID " + parNfcId.value + " synchronisieren...");
+    progress.setText("KEYPAD: Tastencode ID " + parCodeId.value + " synchronisieren...");
     online.connect();
 
-    var data = [102]; // internal function ID
-    data = data.concat((parNfcId.value & 0x0000ff00) >> 8, (parNfcId.value & 0x000000ff));
+    var data = [202]; // internal function ID
+    data = data.concat((parCodeId.value & 0x0000ff00) >> 8, (parCodeId.value & 0x000000ff));
 
     var resp = online.invokeFunctionProperty(160, 3, data);
     if (resp[0] != 0) {
         if (resp[0] == 1) {
-            throw new Error("NFC: NFC ID " + parNfcId.value + " nicht gefunden!");
+            throw new Error("KEYPAD: Tastencode ID " + parCodeId.value + " nicht gefunden!");
         } else {
-            throw new Error("NFC: Es ist ein unbekannter Fehler aufgetreten!");
+            throw new Error("KEYPAD: Es ist ein unbekannter Fehler aufgetreten!");
         }
     }
 
     online.disconnect();
-    progress.setText("NFC: NFC ID " + parNfcId.value + " Synchronisierung gestartet.");
+    progress.setText("KEYPAD: Tastencode ID " + parCodeId.value + " Synchronisierung gestartet.");
 }
 
 function ACC_deleteKeypad(device, online, progress, context) {
-    var parNfcId = device.getParameterByName("ACC_DeleteNfcId");
+    var parCodeId = device.getParameterByName("ACC_DeleteCodeId");
 
-    progress.setText("NFC: NFC ID " + parNfcId.value + " löschen...");
+    progress.setText("KEYPAD: Tastencode ID " + parCodeId.value + " löschen...");
     online.connect();
 
-    var data = [103]; // internal function ID
-    data = data.concat((parNfcId.value & 0x0000ff00) >> 8, (parNfcId.value & 0x000000ff));
+    var data = [203]; // internal function ID
+    data = data.concat((parCodeId.value & 0x0000ff00) >> 8, (parCodeId.value & 0x000000ff));
 
     var resp = online.invokeFunctionProperty(160, 3, data);
     if (resp[0] != 0) {
         if (resp[0] == 1) {
-            throw new Error("NFC: NFC ID " + parNfcId.value + " nicht gefunden!");
+            throw new Error("KEYPAD: Tastencode ID " + parCodeId.value + " nicht gefunden!");
         } else {
-            throw new Error("NFC: Es ist ein unbekannter Fehler aufgetreten!");
+            throw new Error("KEYPAD: Es ist ein unbekannter Fehler aufgetreten!");
         }
     }
 
     online.disconnect();
-    progress.setText("NFC: NFC ID " + parNfcId.value + " gelöscht.");
+    progress.setText("KEYPAD: Tastencode ID " + parCodeId.value + " gelöscht.");
 }
 
 function ACC_resetKeypad(device, online, progress, context) {
-    progress.setText("NFC: Alle NFC-Tags löschen...");
+    progress.setText("KEYPAD: Alle Tastencodes löschen...");
     online.connect();
 
-    var data = [106]; // internal function ID
+    var data = [206]; // internal function ID
 
     var resp = online.invokeFunctionProperty(160, 3, data);
     if (resp[0] != 0) {
-        throw new Error("NFC: Es ist ein unbekannter Fehler aufgetreten!");
+        throw new Error("KEYPAD: Es ist ein unbekannter Fehler aufgetreten!");
     }
 
     online.disconnect();
-    progress.setText("NFC: Alle NFC-Tags gelöscht.");
+    progress.setText("KEYPAD: Alle Tastencodes gelöscht.");
 }
