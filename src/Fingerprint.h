@@ -18,8 +18,8 @@ class Fingerprint
   public:
     enum State
     {
-        None,
-        ScanFinger,
+        None = 0,
+        ScanFinger = 1,
         ScanMatch,
         ScanMatchNoAction,
         ScanNoMatch,

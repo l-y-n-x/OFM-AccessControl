@@ -1,9 +1,8 @@
 #include "AccessControl.h"
 
-ActionChannel::ActionChannel(uint8_t index, Fingerprint *finger)
+ActionChannel::ActionChannel(uint8_t index)
 {
     _channelIndex = index;
-    _finger = finger;
 }
 
 const std::string ActionChannel::name()
@@ -33,7 +32,7 @@ void ActionChannel::processInputKo(GroupObject &ko)
             {
                 _authenticateActive = true;
                 _actionCallResetTime = delayTimerInit();
-                _finger->setLed(Fingerprint::State::WaitForFinger);
+                openknxAccessControl.dispatchAuthAction(true);
             }
             break;
     }
@@ -101,6 +100,6 @@ void ActionChannel::resetActionCall()
         return;
 
     KoACC_ActCallLock.value(false, DPT_Switch);
-    _finger->setLed(Fingerprint::State::None);
+    openknxAccessControl.dispatchAuthAction(false);
     _authenticateActive = false;
 }

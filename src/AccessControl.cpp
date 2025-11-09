@@ -3,6 +3,8 @@
 #include "KeypadEmpty.h"
 #include "KeypadForGira.h"
 
+Fingerprint *AccessControl::finger = nullptr;
+KeypadBase *AccessControl::keypadBase = nullptr;
 
 const std::string AccessControl::name()
 {
@@ -31,7 +33,7 @@ void AccessControl::setup()
 
     for (uint16_t i = 0; i < ParamACC_VisibleActions; i++)
     {
-        _channels[i] = new ActionChannel(i, finger);
+        _channels[i] = new ActionChannel(i);
         _channels[i]->setup();
     }
 
@@ -86,9 +88,26 @@ void AccessControl::setup()
 
     keypadBase->init();
     keypadBase->registerCallback([this](char key) { onKeypadKeyPressed(key); });
-    processKeypadBacklight(false);
     logInfoP("Fingerprint module ready.");
     logIndentDown();
+}
+
+// static 
+void AccessControl::dispatchAuthAction(bool started) {
+    // this is called each time an auth-action is started and should dispatch this to all
+    // auth hardware to visualize auth waiting state
+    if (started) 
+    {
+        finger->setLed(Fingerprint::State::WaitForFinger);
+        keypadBase->setBackgroundLed(255);
+        keypadBase->setFeedback(KeypadBase::FeedbackType::WaitForCode);
+    } 
+    else
+    {
+        finger->setLed(Fingerprint::State::None);
+        keypadBase->setFeedback(KeypadBase::FeedbackType::Off);
+    }
+
 }
 
 void AccessControl::initNfc(bool testMode, uint8_t testModeNfc)
@@ -443,14 +462,9 @@ void AccessControl::loop()
     processSyncSend();
     loopNfc();
     keypadBase->loop();
-    processKeypadBacklight(false);
-    processKeypadFeedback(FeedbackType::Loop);
     // too long pause between 2 keypress
     if (keypadLastKeypressTimer > 0 && delayCheck(keypadLastKeypressTimer, ParamACC_KeypressDelayTimeMS))
-    {
-        clearKeypadBuffer(FeedbackType::PauseExceeded);
-        return;
-    }
+        clearKeypadBuffer(KeypadBase::FeedbackType::PauseExceeded);
 
 
 }
@@ -891,14 +905,14 @@ bool AccessControl::deleteKey(uint16_t keyId, bool sync)
             
         //###ToDo: remote management status feedback
 
-        processKeypadFeedback(FeedbackType::Ok);
+        keypadBase->setFeedback(KeypadBase::FeedbackType::Ok);
         logInfoP("Key with ID %d deleted.", keyId);
     }
     else
     {
         //###ToDo: remote management status feedback
 
-        processKeypadFeedback(FeedbackType::Failed);
+        keypadBase->setFeedback(KeypadBase::FeedbackType::Failed);
         logInfoP("Key with ID %d not found.", keyId);
     }
 
@@ -945,6 +959,8 @@ void AccessControl::processInputKo(GroupObject& ko)
             break;
         case ACC_KoKeypadBacklight:
             processInputKoKeypadBacklight(ko);
+        case ACC_KoKeypadLed:
+            processInputKoKeypadFeedbackLed(ko);
         case ACC_KoRemoteManagementCommand:
         case ACC_KoRemoteManagementStatus:
             //###ToDo: Implement
@@ -1067,25 +1083,35 @@ void AccessControl::processInputKoKeypadBacklight(GroupObject &ko)
 {
     // determine DPT of keypad backlight KO
     Dpt dpt = ParamACC_BacklightIntensity == VAL_Keypad_Backlight_Ko ? DPT_DecimalFactor : DPT_Switch;
-    switchKeypadBacklight((ko.value(dpt)));
+    keypadBase->setBacklight((ko.value(dpt)));
+}
+
+void AccessControl::processInputKoKeypadFeedbackLed(GroupObject &ko)
+{
+    // first deactivate local feedback
+    keypadBase->setFeedback(KeypadBase::FeedbackType::Off);
+    // determine DPT of keypad backlight KO
+    uint32_t ledColor = ko.value(DPT_Colour_RGB);
+    keypadBase->setInfoLed(ledColor);
 }
 
 void AccessControl::onKeypadKeyPressed(char key)
 {
-    bool isFirstKeypress = keypadBacklightTimer == 0;
+    bool isFirstKeypress = keypadBase->getBacklight() == 0;
     
     if (key > 0)
         logDebugP("Keypad key pressed: %c", key);
     
     // backlight is always processed on keypress
-    processKeypadBacklight(true);
+    if (ParamACC_BacklightState == VAL_Keypad_Backlight_Keypress)
+        keypadBase->setBacklight(true);
 
     // send keypress event if enabled
     if (ParamACC_KeypressTrigger && key != '\0')
         KoACC_KeypadKeypress.value(true, DPT_Switch);
     
     // further processing depends on configured keys
-    if (isFirstKeypress && ParamACC_KeypressIngore)
+    if (isFirstKeypress && ParamACC_KeypressIngore && ParamACC_BacklightState != VAL_Keypad_Backlight_On && ParamACC_BacklightState != VAL_Keypad_Backlight_Off)
         return;
 
     // do we have a terminal key defined?
@@ -1094,21 +1120,21 @@ void AccessControl::onKeypadKeyPressed(char key)
     if (ParamACC_KeyProcessingF && terminalKey != 'F' && (key == 'F' || keypadPreviousKey == 'F'))
     {
         keypadPreviousKey = key;
-        processKeypadFeedback(key=='F' ? FeedbackType::ButtonPress : FeedbackType::Off);
+        keypadBase->setFeedback(key=='F' ? KeypadBase::FeedbackType::ButtonPress : KeypadBase::FeedbackType::Off);
         KoACC_KeypadPressF.value(key=='F', DPT_Switch);
         return;
     }
     if (ParamACC_KeyProcessingB && terminalKey != 'B' && (key == 'B' || keypadPreviousKey == 'B'))
     {
         keypadPreviousKey = key;
-        processKeypadFeedback(key=='B' ? FeedbackType::ButtonPress : FeedbackType::Off);
+        keypadBase->setFeedback(key=='B' ? KeypadBase::FeedbackType::ButtonPress : KeypadBase::FeedbackType::Off);
         KoACC_KeypadPressB.value(key=='B', DPT_Switch);
         return;
     }
     if (ParamACC_KeyProcessingK && terminalKey != 'K' &&  (key == 'K' || keypadPreviousKey == 'K'))
     {
         keypadPreviousKey = key;
-        processKeypadFeedback(key=='K' ? FeedbackType::ButtonPress : FeedbackType::Off);
+        keypadBase->setFeedback(key=='K' ? KeypadBase::FeedbackType::ButtonPress : KeypadBase::FeedbackType::Off);
         KoACC_KeypadPressK.value(key=='K', DPT_Switch);
         return;
     }
@@ -1119,7 +1145,7 @@ void AccessControl::onKeypadKeyPressed(char key)
         char clearKey = terminalKey == 'C' ? '*' : 'C';
         if (key == clearKey)
         { 
-            clearKeypadBuffer(FeedbackType::CodeDeleted);
+            clearKeypadBuffer(KeypadBase::FeedbackType::CodeDeleted);
             return;
         }
     }
@@ -1129,7 +1155,7 @@ void AccessControl::onKeypadKeyPressed(char key)
     if (key == '\0')
         return;
     else
-        processKeypadFeedback(FeedbackType::Kepress);
+        keypadBase->setFeedback(KeypadBase::FeedbackType::Kepress);
 
     keypadLastKeypressTimer = delayTimerInit();
     keypadCode[++keypadCodePosition] = key;
@@ -1145,12 +1171,12 @@ void AccessControl::onKeypadKeyPressed(char key)
     }
 }
 
-void AccessControl::clearKeypadBuffer(FeedbackType feedbackType)
+void AccessControl::clearKeypadBuffer(KeypadBase::FeedbackType feedbackType)
 {
     memset(keypadCode, 0, sizeof(keypadCode));
     keypadCodePosition = -1;
     keypadLastKeypressTimer = 0;
-    processKeypadFeedback(feedbackType);
+    keypadBase->setFeedback(feedbackType);
     logInfoP("Current Keycode: <empty>");
 
 }
@@ -1187,7 +1213,7 @@ bool AccessControl::checkKeypadCode(char* enteredCode, bool checkForFail)
         for (uint16_t i = 0; i < ParamACC_VisibleActions; i++)
         _channels[i]->resetActionCall();
         
-        clearKeypadBuffer(FeedbackType::CodeUnknown);
+        clearKeypadBuffer(KeypadBase::FeedbackType::CodeUnknown);
         return false;
     }
     return true;
@@ -1195,8 +1221,8 @@ bool AccessControl::checkKeypadCode(char* enteredCode, bool checkForFail)
 
 void AccessControl::processKeypadScanSuccess(uint16_t foundId, bool external)
 {
-    // KoACC_NfcScanSuccess.value(true, DPT_Switch);
-    // KoACC_NfcScanSuccessId.value(foundId, Dpt(7, 1));
+    KoACC_KeypadScanSuccess.value(true, DPT_Switch);
+    KoACC_KeypadScanSuccessId.value(foundId, Dpt(7, 1));
 
     sendScanAccessData(SyncType::KEY, true, foundId);
 
@@ -1215,111 +1241,7 @@ void AccessControl::processKeypadScanSuccess(uint16_t foundId, bool external)
     }
 
     if (!external)
-        clearKeypadBuffer(actionExecuted ? FeedbackType::ActionOk : FeedbackType::ActionNotFound);
-}
-
-
-
-void AccessControl::switchKeypadBacklight(bool on) {
-
-    uint8_t intensity = 0;
-    if (on) 
-    {
-        switch (ParamACC_BacklightIntensity)
-        {
-            case VAL_Keypad_BacklightIntensity_High:
-                intensity = 255;
-                break;
-            case VAL_Keypad_BacklightIntensity_Middle:
-                intensity = 128;
-                break;
-            case VAL_Keypad_BacklightIntensity_Low:
-                intensity = 64;
-                break;
-            case VAL_Keypad_BacklightIntensity_Ko:
-                intensity = KoACC_KeypadBacklight.value(DPT_DecimalFactor);
-                keypadBacklightTimer = delayTimerInit();
-                break;            
-            default:
-                intensity = 0;
-                break;
-        }
-    }
-    else
-        keypadBacklightTimer = 0;
-    keypadBase->setBackgroundLed(intensity);
-}
-
-void AccessControl::processKeypadBacklight(bool keypress) {
-
-    if (!keypadBacklightInitialized) {
-        if (ParamACC_BacklightState == VAL_Keypad_Backlight_On || ParamACC_BacklightState == VAL_Keypad_Backlight_Ko)
-            switchKeypadBacklight(1);
-        else if (ParamACC_BacklightState == VAL_Keypad_Backlight_Off || ParamACC_BacklightState == VAL_Keypad_Backlight_Keypress)
-            switchKeypadBacklight(0);
-    }
-    if (keypress && ParamACC_BacklightState == VAL_Keypad_Backlight_Keypress)
-    {
-        switchKeypadBacklight(1);
-        keypadBacklightTimer = delayTimerInit();
-    }
-    if (keypadBacklightTimer > 0 && ParamACC_BacklightDelayTimeMS > 0 && delayCheck(keypadBacklightTimer, ParamACC_BacklightDelayTimeMS))
-        switchKeypadBacklight(0);
-
-    keypadBacklightInitialized = true;
-}
-
-void AccessControl::processKeypadFeedback(FeedbackType feedbackType)
-{
-    // provide optical feedback if enabled
-    if (ParamACC_FeedbackLed & 1) 
-    {
-        switch (feedbackType)
-        {
-            case FeedbackType::Loop:
-                if (keypadFeedbackLedTimer > 0 && delayCheck(keypadFeedbackLedTimer, keypadFeedbackLedDuration))
-                    processKeypadFeedback(FeedbackType::Off);
-                break;
-            case FeedbackType::Kepress:
-                keypadBase->setInfoLed(0,0,255); // blue
-                keypadFeedbackLedTimer = delayTimerInit();
-                keypadFeedbackLedDuration = 200;
-                break;
-            case FeedbackType::Ok:
-            case FeedbackType::ActionOk:
-                keypadBase->setInfoLed(0,255,0); // green
-                keypadFeedbackLedTimer = delayTimerInit();
-                keypadFeedbackLedDuration = 1000;
-                break;
-            case FeedbackType::ActionNotFound:
-                keypadBase->setInfoLed(255,255,0); // yellow
-                keypadFeedbackLedTimer = delayTimerInit();
-                keypadFeedbackLedDuration = 1000;
-                break;
-            case FeedbackType::Failed:
-            case FeedbackType::CodeUnknown:
-            case FeedbackType::PauseExceeded:
-                keypadBase->setInfoLed(255,0,0); // red
-                keypadFeedbackLedTimer = delayTimerInit();
-                keypadFeedbackLedDuration = 1000;
-                break;
-            case FeedbackType::CodeDeleted:
-                keypadBase->setInfoLed(255,0,255); // blue
-                keypadFeedbackLedTimer = delayTimerInit();
-                keypadFeedbackLedDuration = 2000;
-                break;
-            case FeedbackType::ButtonPress:
-                keypadBase->setInfoLed(255,255,255); // white
-                keypadFeedbackLedTimer = 0;
-                keypadFeedbackLedDuration = 0;
-                break;
-            default:
-                keypadBase->setInfoLed(0,0,0);
-                keypadFeedbackLedTimer = 0;
-                keypadFeedbackLedDuration = 0;
-                break;
-        }
-    }
+        clearKeypadBuffer(actionExecuted ? KeypadBase::FeedbackType::ActionOk : KeypadBase::FeedbackType::ActionNotFound);
 }
 
 void AccessControl::startSyncDelete(SyncType syncType, uint16_t deleteId)

@@ -30,6 +30,9 @@ void KeypadForGira::loop(bool testMode)
     if (!_initialized)
         return;
 
+    // first call base (necessary for correct effect evaluation)
+    KeypadBase::loop(testMode);
+
     // if (!testMode && ParamACC_NfcScanner == 0)
     //     return;
     
@@ -76,11 +79,11 @@ void KeypadForGira::loop(bool testMode)
     }
 }
 
-void KeypadForGira::setInfoLed(uint8_t red, uint8_t green, uint8_t blue)
+void KeypadForGira::setInfoLed(uint32_t ledColor)
 {
-    _ledRed = red;
-    _ledGreen = green;
-    _ledBlue = blue;
+    _ledRed = (ledColor & 0xFF0000) >> 16;
+    _ledGreen = (ledColor & 0xFF00) >> 8;
+    _ledBlue = ledColor & 0xFF;
     
     updateLeds();
 }

@@ -14,3 +14,147 @@ void KeypadBase::registerCallback(KeyPressedCallback callback)
 }
 
 void KeypadBase::runTestMode() {}
+
+void KeypadBase::init(bool testMode) 
+{
+    if (ParamACC_BacklightState == VAL_Keypad_Backlight_On)
+    {
+        setBacklight(true);
+        _backlightTimer = 0; // backlight will not be turned off
+    }
+    else
+        setBacklight(false);
+}
+
+void KeypadBase::loop(bool testMode) 
+{
+    // handle feedback led effects
+    if (_ledTimer > 0 && delayCheck(_ledTimer, _ledDuration))
+        setFeedback(FeedbackType::Off);
+    else if (_ledEffect == LedEffect::Blink)
+    {
+        uint32_t durationDelta = millis() - _ledTimer;
+        // pusle - pause blinking
+        uint32_t durationPart = durationDelta % (_ledPulse + _ledPause); 
+        if ((durationPart <= _ledPulse) != _ledBlinkState)
+        {
+            _ledBlinkState = !_ledBlinkState;
+            if (_ledBlinkState)
+                setInfoLed(_ledOnColor);
+            else
+                setInfoLed(_ledOffColor);
+        }
+    }
+
+    // handle backlight led
+    if (_backlightTimer > 0 && ParamACC_BacklightDelayTimeMS > 0 && delayCheck(_backlightTimer, ParamACC_BacklightDelayTimeMS))
+        setBacklight(false);
+}
+
+void KeypadBase::setFeedback(FeedbackType feedbackType)
+{
+    // provide optical feedback if enabled
+    if (ParamACC_FeedbackLed & 1) 
+    {
+        switch (feedbackType)
+        {
+            case FeedbackType::Kepress:
+                setInfoLed(0x0000FF); // blue
+                _ledTimer = delayTimerInit();
+                _ledDuration = 200;
+                break;
+            case FeedbackType::Ok:
+            case FeedbackType::ActionOk:
+                setInfoLed(0x00FF00); // green
+                _ledTimer = delayTimerInit();
+                _ledDuration = 1000;
+                break;
+            case FeedbackType::ActionNotFound:
+                setInfoLed(0xBB2200); // yellow
+                _ledTimer = delayTimerInit();
+                _ledDuration = 1000;
+                break;
+            case FeedbackType::Failed:
+            case FeedbackType::CodeUnknown:
+            case FeedbackType::PauseExceeded:
+                setInfoLed(0xFF0000); // red
+                _ledTimer = delayTimerInit();
+                _ledDuration = 1000;
+                break;
+            case FeedbackType::CodeDeleted:
+                _ledTimer = delayTimerInit();
+                _ledDuration = 1000;
+                _ledEffect = LedEffect::Blink;
+                _ledOnColor = 0xFF0000;
+                // _ledOffColor = 0x00FF00;
+                _ledPulse = 50;
+                _ledPause = 150;
+                setInfoLed(_ledOnColor); // blue
+                break;
+            case FeedbackType::WaitForCode:
+                _ledTimer = 0;
+                _ledEffect = LedEffect::Blink;
+                _ledOnColor = 0x0000FF;
+                // _ledOffColor = 0x00FF00;
+                _ledPulse = 50;
+                _ledPause = 150;
+                setInfoLed(_ledOnColor); // blue
+                break;
+            case FeedbackType::ButtonPress:
+                setInfoLed(0xFFFFFF); // white
+                _ledTimer = 0;
+                _ledDuration = 0;
+                break;
+            default:
+                setInfoLed(0x000000);
+                _ledTimer = 0;
+                _ledDuration = 0;
+                _ledEffect = LedEffect::NoEffect;
+                _ledBlinkState = false;
+                _ledOnColor = 0;
+                _ledOffColor = 0;
+                _ledPulse = 0;
+                _ledPause = 0;
+                break;
+        }
+    }
+}
+
+void KeypadBase::setBacklight(bool on) {
+
+    uint8_t intensity = 0;
+    _backlight = on;
+    if (on) 
+    {
+        switch (ParamACC_BacklightIntensity)
+        {
+            case VAL_Keypad_BacklightIntensity_High:
+                intensity = 0xFF;
+                break;
+            case VAL_Keypad_BacklightIntensity_Middle:
+                intensity = 0x7F;
+                break;
+            case VAL_Keypad_BacklightIntensity_Low:
+                intensity = 0x3F;
+                break;
+            case VAL_Keypad_BacklightIntensity_Ko:
+                intensity = KoACC_KeypadBacklight.value(DPT_DecimalFactor);
+                break;            
+                default:
+                intensity = 0x00;
+                break;
+        }
+        _backlightTimer = delayTimerInit();
+    }
+    else
+        _backlightTimer = 0;
+    
+    setBackgroundLed(intensity);
+}
+
+// keypads without backlight support should 
+// overrride this and ALWAYS return true!!!
+bool KeypadBase::getBacklight()
+{
+    return _backlight;
+}
