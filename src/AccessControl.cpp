@@ -1191,6 +1191,12 @@ bool AccessControl::checkKeypadCode(char* enteredCode, bool checkForFail)
     {
         storageOffset = ACC_CalcKeyStorageOffset(codeId);
         _keypadStorage.read(storageOffset, storedCode, 10);
+        uint8_t storedLen = strlen((const char *)storedCode);
+        if (strcmp((const char *)storedCode, enteredCode) && storedLen < 10 && checkForFail)
+        {
+            // in case strings are not exact equal we ignore the terminal character
+            storedCode[storedLen] = keypadKeymap[ParamACC_KeyTermination];
+        }
         if (!strcmp((const char *)storedCode, enteredCode))
         {
             found = true;

@@ -81,28 +81,34 @@ void KeypadForGira::loop(bool testMode)
 
 void KeypadForGira::setInfoLed(uint32_t ledColor)
 {
+#ifdef KEYPAD_PCA9633_ADDR
     _ledRed = (ledColor & 0xFF0000) >> 16;
     _ledGreen = (ledColor & 0xFF00) >> 8;
     _ledBlue = ledColor & 0xFF;
     
     updateLeds();
+#endif
 }
 
 void KeypadForGira::setBackgroundLed(uint8_t brightness)
 {
+#ifdef KEYPAD_PCA9633_ADDR
     _ledBackground = brightness;
 
     updateLeds();
+#endif
 }
 
 void KeypadForGira::updateLeds()
 {
+#ifdef KEYPAD_PCA9633_ADDR
     if (!_ledInitialized)
         return;
     
     uint8_t ledBackground = 255 - _ledBackground; // background is inverted (0 = max brightness, 255 = off)
     _ledController.setRGBW(_ledRed, _ledGreen, _ledBlue, ledBackground);
     logDebugP("LEDs now R:%d G:%d B:%d BG:%d", _ledRed, _ledGreen, _ledBlue, ledBackground);
+#endif
 }
 
 #ifdef KEYPAD_PCA9633_ADDR
