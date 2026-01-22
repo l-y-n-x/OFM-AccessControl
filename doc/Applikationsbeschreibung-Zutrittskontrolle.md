@@ -18,6 +18,12 @@ Es gibt eine kleinere Applikationsversion mit bis zu 200 Aktionen/Fingerzuordnun
 
 Im folgenden werden Änderungen an dem Dokument erfasst, damit man nicht immer das Gesamtdokument lesen muss, um Neuerungen zu erfahren.
 
+22.01.2026: Firmware 0.11, Applikation 0.11
+
+* NEU: Erweiterung der Applikation, um Zahlencodes als Zutrittsmedium zu etablieren und Aktionen zuzuweisen.
+* NEU: Unterstützung vom GIRA Keypad
+* NEU: Vorbereitung für weitere Keypads
+
 18.09.2025: Firmware 0.10, Applikation 0.10
 
 * FIX: Rot/Grüne LED sowie Touch-Tasten wurden beim Schaltereinsatz ohne NFC nicht erkannt.
@@ -124,9 +130,9 @@ Die Funktionen vom Konfigurationstranfer-Modul sind unter [Applikationsbeschreib
 
 ### **Schaltaktor**
 
---ToDo--
+Die Zutrittskontrolle unterstützt auch einen Schaltaktorkanal, um direkt z.B. eine Tür öffnen zu können. 
 
-
+Die Funktion des Schaltaktors ist unter [Applikationsbeschreibung-Schaltaktor](https://github.com/OpenKNX/OFM-SwitchActuator/blob/main/doc/Applikationsbeschreibung-Schaltaktor.md) beschrieben
 
 ### **Logiken**
 
@@ -151,7 +157,7 @@ Die Funktionen der Binäreingänge sind unter [Applikationsbeschreibung-Binärei
 # **Zutrittskontrolle**
 
 <!-- DOC HelpContext="Dokumentation" -->
-Mit diesem Modul können Finger und NFC-Tags im Lesegerät angelernt, gelöscht, Aktionen verknüpft und Finger bzw. NFC-Tags den Aktionen zugeordnet werden.
+Mit diesem Modul können Finger, NFC-Tags und Tastenkombinationen im Lesegerät angelernt, gelöscht, Aktionen verknüpft und Finger, NFC-Tags oder Tastenkombinationen den Aktionen zugeordnet werden.
 
 <!-- DOCCONTENT 
 https://github.com/OpenKNX/OFM-AccessControl/blob/main/doc/Applikationsbeschreibung-Zutrittskontrolle.md
@@ -192,7 +198,8 @@ Auswahl der angeschlossenen NFC-Scanner-Hardware. Es wird die folgendes angebote
 Auswahl der angeschlossenen Keypad-Hardware. Es wird die folgendes angeboten:
 
 * **Kein Keypad** (Standard): Wenn keine Keypad-Hardware angeschlossen ist
-* **Keypad von AB-Tools**: Eine Keypad-Hardware ist über ein Kabel mit der Fingerprint-Platine verbunden
+* **Keypad (Touch) von Gira**: Eine Keypad-Hardware von AB-Tools ist über ein Kabel mit der Fingerprint-Platine verbunden. Kann mit der Keypad-Blende von Gira verwendet werden.
+* **Keypad (Tastatur 4x3)**: Vorbereitung für weitere Code-Tastaturen
 
 <!-- DOC -->
 #### **Touch-Frontplatine vorhanden**
