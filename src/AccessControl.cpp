@@ -2,6 +2,7 @@
 #include "I2CDev.h"
 #include "KeypadEmpty.h"
 #include "KeypadForGira.h"
+#include "KeypadMatrix3x4.h"
 
 Fingerprint *AccessControl::finger = nullptr;
 KeypadBase *AccessControl::keypadBase = nullptr;
@@ -79,6 +80,9 @@ void AccessControl::setup()
     {
         case 1:
             keypadBase = new KeypadForGira();
+            break;
+        case 2:
+            keypadBase = new KeypadMatrix3x4();
             break;
     
         default:

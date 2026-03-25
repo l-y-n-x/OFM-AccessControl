@@ -1,0 +1,156 @@
+#include <utility>
+#include "KeypadMatrix3x4.h"
+
+KeypadMatrix3x4::KeypadMatrix3x4() {};
+
+void KeypadMatrix3x4::init(bool testMode)
+{
+    // if (!testMode && ParamACC_NfcScanner == 0)
+    //     return;
+
+#ifdef KEYPAD_PCA9633_ADDR
+    _ledController.begin(KEYPAD_PCA9633_ADDR, &OPENKNX_GPIO_WIRE);
+    _ledController.setLdrStateAll(LDR_STATE_IND);
+    _ledController.setRGBW(0, 0, 0, 255);
+    _ledInitialized = true;
+    logInfoP("Initialized PCA9633.");
+#endif
+
+    if (_keypad.begin("8116"))
+        logInfoP("Initialized BS8116.");
+    else
+        logInfoP("Failed to initialize BS8116.");
+
+    _lastKeymap = 0;
+    _initialized = true;
+}
+
+void KeypadMatrix3x4::loop(bool testMode)
+{
+    if (!_initialized)
+        return;
+
+    // first call base (necessary for correct effect evaluation)
+    KeypadBase::loop(testMode);
+
+    // if (!testMode && ParamACC_NfcScanner == 0)
+    //     return;
+    
+    uint16_t keymap = _keypad.readKeys();
+
+    if (testMode)
+    {
+        char map[16];
+        for (uint8_t i = 0; i < 16; i++)
+            map[i] = (keymap & (1 << i)) ? '1' : '0';
+
+        Serial.print("Key status:");
+        Serial.print(map);
+
+        uint8_t key = _keypad.getKey_active();
+        Serial.print("  Pressed key: ");
+        Serial.println(key);
+
+        delay(1000);
+    }
+
+    uint16_t newlyPressed = keymap & ~_lastKeymap;
+
+    // send also a key up event
+    if (_callback && keymap == 0 && _lastKeymap != 0 && !(_lastKeymap & (_lastKeymap - 1)))
+        _callback('\0');
+
+    _lastKeymap = keymap;
+
+    if (!_callback || newlyPressed == 0)
+        return;
+    // skip, if more than 1 bit is set (more than one key is pressed)
+    if (newlyPressed & (newlyPressed-1))
+        return;
+        
+    for (uint8_t index = 0; index < 16; ++index)
+    {
+        if (newlyPressed & (1 << index))
+        {
+            char resolved = mapKey(index);
+            if (resolved != '\0')
+                _callback(resolved);
+        }
+    }
+}
+
+void KeypadMatrix3x4::setInfoLed(uint32_t ledColor)
+{
+#ifdef KEYPAD_PCA9633_ADDR
+    _ledRed = (ledColor & 0xFF0000) >> 16;
+    _ledGreen = (ledColor & 0xFF00) >> 8;
+    _ledBlue = ledColor & 0xFF;
+    
+    updateLeds();
+#endif
+}
+
+void KeypadMatrix3x4::setBackgroundLed(uint8_t brightness)
+{
+#ifdef KEYPAD_PCA9633_ADDR
+    _ledBackground = brightness;
+
+    updateLeds();
+#endif
+}
+
+void KeypadMatrix3x4::updateLeds()
+{
+#ifdef KEYPAD_PCA9633_ADDR
+    if (!_ledInitialized)
+        return;
+    
+    uint8_t ledBackground = 255 - _ledBackground; // background is inverted (0 = max brightness, 255 = off)
+    _ledController.setRGBW(_ledRed, _ledGreen, _ledBlue, ledBackground);
+    logDebugP("LEDs now R:%d G:%d B:%d BG:%d", _ledRed, _ledGreen, _ledBlue, ledBackground);
+#endif
+}
+
+#ifdef KEYPAD_PCA9633_ADDR
+void KeypadMatrix3x4::runTestMode()
+{
+    if (!_ledInitialized)
+        return;
+    
+    logDebugP("RGB with background, all max");
+    _ledController.setRGBW(255, 255, 255, 0);
+    delay(1000);
+
+    logDebugP("Red only");
+    _ledController.setRGBW(255, 0, 0, 255);
+    delay(1000);
+
+    logDebugP("Green only");
+    _ledController.setRGBW(0, 255, 0, 255);
+    delay(1000);
+
+    logDebugP("Blue only");
+    _ledController.setRGBW(0, 0, 255, 255);
+    delay(1000);
+
+    logDebugP("Background only max");
+    _ledController.setRGBW(0, 0, 0, 0);
+    delay(1000);
+
+    logDebugP("Background only 50%");
+    _ledController.setRGBW(0, 0, 0, 128);
+    delay(1000);
+
+    logDebugP("Background only 25%");
+    _ledController.setRGBW(0, 0, 0, 196);
+    delay(1000);
+}
+#endif
+
+char KeypadMatrix3x4::mapKey(uint8_t index) const
+{
+    static constexpr char lookup[] = {'F', '3', 'B', '6', '5', '4', '7', '8', '9', 'K', '*', '0', '#', 'C', '2', '1'};
+    if (index < sizeof(lookup))
+        return lookup[index];
+    return '\0';
+}
