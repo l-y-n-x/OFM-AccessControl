@@ -45,7 +45,7 @@ class MatrixKeypad
 
     // Debouncing variables
     uint16_t m_debounceCounter;
-    const uint16_t m_debounceThreshold; // Number of scans for debounce
+    const uint16_t m_debounceThreshold; // Number of loops for debounce
     bool m_keyIsPressed;                // True if a key is currently considered pressed (after debounce)
     char m_lastPressedKey;              // Stores the last key that was registered as pressed
 

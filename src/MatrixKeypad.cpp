@@ -18,19 +18,19 @@ MatrixKeypad::MatrixKeypad(uint8_t numRows,
       m_debounceCounter(0),
       m_keyIsPressed(false),
       m_lastPressedKey('\0'),
-      m_debounceThreshold(debounceTime_ms * 10)
+      m_debounceThreshold(debounceTime_ms / 5)
 {
     // Initialize all row pins as outputs and set them high (inactive)
     for (uint8_t i = 0; i < m_numRows; ++i)
     {
-        pinMode(m_rowPins[i], OUTPUT);
-        digitalWrite(m_rowPins[i], HIGH); // Keep rows inactive (high)
+        openknx.gpio.pinMode(m_rowPins[i], OUTPUT);
+        openknx.gpio.digitalWrite(m_rowPins[i], HIGH); // Keep rows inactive (high)
     }
 
     // Initialize all column pins as inputs with pull-up resistors
     for (uint8_t i = 0; i < m_numCols; ++i)
     {
-        pinMode(m_colPins[i], INPUT_PULLUP);
+        openknx.gpio.pinMode(m_colPins[i], INPUT_PULLUP);
     }
 }
 
@@ -47,13 +47,13 @@ void MatrixKeypad::loop()
     for (uint8_t r = 0; r < m_numRows; ++r)
     {
         // Drive the current row low to activate it
-        digitalWrite(m_rowPins[r], LOW);
+        openknx.gpio.digitalWrite(m_rowPins[r], LOW);
 
         // Check all columns for a key press
         for (uint8_t c = 0; c < m_numCols; ++c)
         {
             // If a column pin is low, a key in this row/column is pressed
-            if (digitalRead(m_colPins[c]) == LOW)
+            if (openknx.gpio.digitalRead(m_colPins[c]) == LOW)
             {
                 // Access keyMap using 1D indexing: row * numCols + col
                 currentKey = m_keyMap[static_cast<size_t>(r) * m_numCols + c];
@@ -62,10 +62,11 @@ void MatrixKeypad::loop()
         }
 
         // Set the current row back to high (inactive) before moving to the next row
-        digitalWrite(m_rowPins[r], HIGH);
+        openknx.gpio.digitalWrite(m_rowPins[r], HIGH);
 
         // If a key has been found, exit the row loop
-        if (currentKey != '\0') {
+        if (currentKey != '\0')
+        {
             break;
         }
     }
@@ -77,7 +78,7 @@ void MatrixKeypad::loop()
     // after the scan to prevent ghosting or unwanted current draw.
     for (uint8_t r = 0; r < m_numRows; ++r)
     {
-        digitalWrite(m_rowPins[r], HIGH);
+        openknx.gpio.digitalWrite(m_rowPins[r], HIGH);
     }
 }
 
@@ -85,10 +86,11 @@ void MatrixKeypad::handleDebounce(char currentKey)
 {
     if (currentKey != '\0')
     { // A key is physically pressed
-        logDebug("MatrixKeypad","Key '%c' pressed", currentKey);
+        // logDebug("MatrixKeypad","Key '%c' pressed", currentKey);
         if (!m_keyIsPressed)
         { // No key was previously considered pressed (debounced)
             m_debounceCounter++;
+            // logDebug("MatrixKeypad","Debounce '%c' Cnt %d of %d", currentKey, m_debounceCounter, m_debounceThreshold);
             if (m_debounceCounter >= m_debounceThreshold)
             {
                 // Key has been stable for long enough, register it as pressed
@@ -98,7 +100,7 @@ void MatrixKeypad::handleDebounce(char currentKey)
                 if (m_callback)
                 {
                     m_callback(currentKey); // Trigger the callback!
-                    logDebug("MatrixKeypad","Key '%c' pressed (debounced)", currentKey);
+                    logDebug("MatrixKeypad", "Key '%c' pressed (debounced)", currentKey);
                 }
             }
         }

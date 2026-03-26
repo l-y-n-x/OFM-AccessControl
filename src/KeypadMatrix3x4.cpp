@@ -1,6 +1,6 @@
-#include <utility>
 #include "KeypadMatrix3x4.h"
 #include "OpenKNX.h"
+#include <utility>
 
 KeypadMatrix3x4::KeypadMatrix3x4()
     : KeypadBase()
@@ -11,7 +11,7 @@ KeypadMatrix3x4::KeypadMatrix3x4()
         (const uint16_t[]){OPENKNX_ACC_KEYPAD_ROW_PINS},
         (const uint16_t[]){OPENKNX_ACC_KEYPAD_COL_PINS},
         (const char[]){'1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '0', '#'},
-        [this](char key){ if (_callback) _callback(key); },
+        [this](char key) { if (_callback) _callback(key); },
         50);
 }
 
@@ -30,7 +30,6 @@ void KeypadMatrix3x4::loop(bool testMode)
     KeypadBase::loop(testMode);
     _keypad->loop();
 }
-
 
 void KeypadMatrix3x4::setInfoLed(uint32_t ledColor)
 {
