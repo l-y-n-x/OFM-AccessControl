@@ -62,6 +62,16 @@ void KeypadMatrix3x4::loop(bool testMode)
 }
 
 
+void KeypadMatrix3x4::setInfoLed(uint32_t ledColor)
+{
+    return;
+}
+
+void KeypadMatrix3x4::setBackgroundLed(uint8_t brightness)
+{
+    return;
+}
+
 
 char KeypadMatrix3x4::mapKey(uint8_t index) const
 {

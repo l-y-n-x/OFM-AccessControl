@@ -12,7 +12,9 @@ class KeypadMatrix3x4 : public KeypadBase
   public:
     KeypadMatrix3x4();
     void init(bool testMode = false) override;
-    void loop(bool testMode = false) override;  
+    void loop(bool testMode = false) override;
+    void setInfoLed(uint32_t ledColor) override;
+    void setBackgroundLed(uint8_t brightness) override;
 
 
   private:
