@@ -1,11 +1,8 @@
 #pragma once
 
 #include "KeypadBase.h"
-#include "BS811X.h"
+#include "MatrixKeypad.h"
 
-#ifdef KEYPAD_PCA9633_ADDR
-    #include "PCA9633.h"
-#endif
 
 class KeypadMatrix3x4 : public KeypadBase
 {
@@ -19,6 +16,7 @@ class KeypadMatrix3x4 : public KeypadBase
 
   private:
     char mapKey(uint8_t index) const;
+    MatrixKeypad* _keypad = nullptr;
 
     uint16_t _lastKeymap = 0;
 };
