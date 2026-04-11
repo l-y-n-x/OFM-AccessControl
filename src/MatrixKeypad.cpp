@@ -100,7 +100,7 @@ void MatrixKeypad::handleDebounce(char currentKey)
                 if (m_callback)
                 {
                     m_callback(currentKey); // Trigger the callback!
-                    logDebug("MatrixKeypad", "Key '%c' pressed (debounced)", currentKey);
+                    //logDebug("MatrixKeypad", "Key '%c' pressed (debounced)", currentKey);
                 }
             }
         }
