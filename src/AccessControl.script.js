@@ -99,7 +99,8 @@ function ACC_checkFingerAction(device, online, progress, context) {
         var personFinger = 0;
         var personName = "";
 
-        var resp = online.invokeFunctionProperty(160, 3, data);
+        // var resp = online.invokeFunctionProperty(160, 3, data);
+        var resp = BASE_invokeFunctionPropertyWrapper(160, 3, data, device, online, progress);
         if (resp[0] != 0) {
             progress.setText("Fingerprint: Person zu Finger ID " + parFingerId.value + " nicht gefunden.");
             online.disconnect();
@@ -191,7 +192,8 @@ function ACC_searchFingerId(device, online, progress, context) {
     }
     data = data.concat(0); // null-terminated string
 
-    var resp = online.invokeFunctionProperty(160, 3, data);
+    // var resp = online.invokeFunctionProperty(160, 3, data);
+    var resp = BASE_invokeFunctionPropertyWrapper(160, 3, data, device, online, progress);
     if (resp[0] != 0) {
         if (resp[0] == 1) {
             progress.setText("Fingerprint: Finger ID zu Person " + parPersonName.value + " (" + parPersonFinger.value + ") nicht gefunden.");
@@ -277,7 +279,8 @@ function ACC_searchFingerName(device, online, progress, context) {
     var data = [11]; // internal function ID
     data = data.concat((fingerId & 0x0000ff00) >> 8, (fingerId & 0x000000ff));
 
-    var resp = online.invokeFunctionProperty(160, 3, data);
+    // var resp = online.invokeFunctionProperty(160, 3, data);
+    var resp = BASE_invokeFunctionPropertyWrapper(160, 3, data, device, online, progress);
     if (resp[0] != 0) {
         if (resp[0] == 1) {
             progress.setText("Fingerprint: Person zu Finger ID " + fingerId + " nicht gefunden.");
@@ -339,7 +342,8 @@ function ACC_enrollFinger(device, online, progress, context) {
     }
     data = data.concat(0); // null-terminated string
 
-    var resp = online.invokeFunctionProperty(160, 3, data);
+    // var resp = online.invokeFunctionProperty(160, 3, data);
+    var resp = BASE_invokeFunctionPropertyWrapper(160, 3, data, device, online, progress);
     if (resp[0] != 0) {
         throw new Error("Fingerprint: Finger anlernen konnte nicht gestartet werden!");
     }
@@ -353,7 +357,8 @@ function ACC_enrollFinger(device, online, progress, context) {
         
         var data = [7]; // command wait for enroll request finished
         data = data.concat(0); // zero-terminated
-        
+
+        // no Wrapper necessary here
         var resp = online.invokeFunctionProperty(160, 3, data);
         
         var lPercent = 0;
@@ -379,6 +384,7 @@ function ACC_enrollFinger(device, online, progress, context) {
                 lPercent = fingerProgress / 9.0 * 100.0;
                 if (lPercent <= 100) progress.setProgress(lPercent);
                 ACC_sleep(1000);
+                // no Wrapper necessary here
                 resp = online.invokeFunctionProperty(160, 3, data);
                 // lCancelled = progress.isCanceled();
             }
@@ -422,7 +428,8 @@ function ACC_changeFinger(device, online, progress, context) {
     }
     data = data.concat(0); // null-terminated string
 
-    var resp = online.invokeFunctionProperty(160, 3, data);
+    // var resp = online.invokeFunctionProperty(160, 3, data);
+    var resp = BASE_invokeFunctionPropertyWrapper(160, 3, data, device, online, progress);
     if (resp[0] != 0) {
         if (resp[0] == 1) {
             throw new Error("Fingerprint: Finger ID " + parFingerId.value + " nicht gefunden!");
@@ -444,6 +451,7 @@ function ACC_syncFinger(device, online, progress, context) {
     var data = [2]; // internal function ID
     data = data.concat((parFingerId.value & 0x0000ff00) >> 8, (parFingerId.value & 0x000000ff));
 
+    // no Wrapper necessary here
     var resp = online.invokeFunctionProperty(160, 3, data);
     if (resp[0] != 0) {
         if (resp[0] == 1) {
@@ -466,6 +474,7 @@ function ACC_deleteFinger(device, online, progress, context) {
     var data = [3]; // internal function ID
     data = data.concat((parFingerId.value & 0x0000ff00) >> 8, (parFingerId.value & 0x000000ff));
 
+    // no Wrapper necessary here
     var resp = online.invokeFunctionProperty(160, 3, data);
     if (resp[0] != 0) {
         if (resp[0] == 1) {
@@ -485,6 +494,7 @@ function ACC_resetFingerScanner(device, online, progress, context) {
 
     var data = [6]; // internal function ID
 
+    // no Wrapper necessary here
     var resp = online.invokeFunctionProperty(160, 3, data);
     if (resp[0] != 0) {
         throw new Error("Fingerprint: Es ist ein unbekannter Fehler aufgetreten!");
@@ -524,7 +534,8 @@ function ACC_setFingerPassword(device, online, progress, context) {
         data = data.concat(0); // null-terminated string
     }
 
-    var resp = online.invokeFunctionProperty(160, 3, data);
+    // var resp = online.invokeFunctionProperty(160, 3, data);
+    var resp = BASE_invokeFunctionPropertyWrapper(160, 3, data, device, online, progress);
     if (resp[0] != 0) {
         if (resp[0] == 1) {
             throw new Error("Fingerprint: Eingegebenes altes Passwort falsch!");
@@ -556,7 +567,8 @@ function ACC_checkNfcAction(device, online, progress, context) {
 
         var nfcName = "";
 
-        var resp = online.invokeFunctionProperty(160, 3, data);
+        // var resp = online.invokeFunctionProperty(160, 3, data);
+        var resp = BASE_invokeFunctionPropertyWrapper(160, 3, data, device, online, progress);
         if (resp[0] != 0) {
             progress.setText("NFC: Tag zu NFC ID " + parNfcId.value + " nicht gefunden.");
             online.disconnect();
@@ -609,7 +621,8 @@ function ACC_searchNfcId(device, online, progress, context) {
     }
     data = data.concat(0); // null-terminated string
 
-    var resp = online.invokeFunctionProperty(160, 3, data);
+    // var resp = online.invokeFunctionProperty(160, 3, data);
+    var resp = BASE_invokeFunctionPropertyWrapper(160, 3, data, device, online, progress);
     if (resp[0] != 0) {
         if (resp[0] == 1) {
             progress.setText("NFC: Tag ID zum Tag Namen " + parNfcName.value + " nicht gefunden.");
@@ -679,7 +692,8 @@ function ACC_searchNfcName(device, online, progress, context) {
     var data = [111]; // internal function ID
     data = data.concat((nfcId & 0x0000ff00) >> 8, (nfcId & 0x000000ff));
 
-    var resp = online.invokeFunctionProperty(160, 3, data);
+    // var resp = online.invokeFunctionProperty(160, 3, data);
+    var resp = BASE_invokeFunctionPropertyWrapper(160, 3, data, device, online, progress);
     if (resp[0] != 0) {
         if (resp[0] == 1) {
             progress.setText("NFC: Tag Namen zu Tag ID " + nfcId + " nicht gefunden.");
@@ -732,7 +746,8 @@ function ACC_enrollNfc(device, online, progress, context) {
     }
     data = data.concat(0); // null-terminated string
 
-    var resp = online.invokeFunctionProperty(160, 3, data);
+    // var resp = online.invokeFunctionProperty(160, 3, data);
+    var resp = BASE_invokeFunctionPropertyWrapper(160, 3, data, device, online, progress);
     if (resp[0] != 0) {
         throw new Error("NFC: Tag anlernen konnte nicht gestartet werden!");
     }
@@ -746,6 +761,7 @@ function ACC_enrollNfc(device, online, progress, context) {
         var data = [107]; // command wait for enroll request finished
         data = data.concat(0); // zero-terminated
         
+        // no Wrapper necessary here
         var resp = online.invokeFunctionProperty(160, 3, data);
         
         var lPercent = 0;
@@ -757,6 +773,7 @@ function ACC_enrollNfc(device, online, progress, context) {
                 lPercent += (90.0-lPercent)/40.0;
                 if (lPercent <= 100) progress.setProgress(lPercent);
                 ACC_sleep(1000);
+                // no Wrapper necessary here
                 resp = online.invokeFunctionProperty(160, 3, data);
                 // lCancelled = progress.isCanceled();
             }
@@ -827,7 +844,8 @@ function ACC_changeNfc(device, online, progress, context) {
     }
     data = data.concat(0); // null-terminated string
 
-    var resp = online.invokeFunctionProperty(160, 3, data);
+    // var resp = online.invokeFunctionProperty(160, 3, data);
+    var resp = BASE_invokeFunctionPropertyWrapper(160, 3, data, device, online, progress);
     if (resp[0] != 0) {
         if (resp[0] == 1) {
             throw new Error("NFC: NFC ID " + parNfcId.value + " nicht gefunden!");
@@ -849,6 +867,7 @@ function ACC_syncNfc(device, online, progress, context) {
     var data = [102]; // internal function ID
     data = data.concat((parNfcId.value & 0x0000ff00) >> 8, (parNfcId.value & 0x000000ff));
 
+    // no Wrapper necessary here
     var resp = online.invokeFunctionProperty(160, 3, data);
     if (resp[0] != 0) {
         if (resp[0] == 1) {
@@ -871,6 +890,7 @@ function ACC_deleteNfc(device, online, progress, context) {
     var data = [103]; // internal function ID
     data = data.concat((parNfcId.value & 0x0000ff00) >> 8, (parNfcId.value & 0x000000ff));
 
+    // no Wrapper necessary here
     var resp = online.invokeFunctionProperty(160, 3, data);
     if (resp[0] != 0) {
         if (resp[0] == 1) {
@@ -890,6 +910,7 @@ function ACC_resetNfcScanner(device, online, progress, context) {
 
     var data = [106]; // internal function ID
 
+    // no Wrapper necessary here
     var resp = online.invokeFunctionProperty(160, 3, data);
     if (resp[0] != 0) {
         throw new Error("NFC: Es ist ein unbekannter Fehler aufgetreten!");
@@ -927,7 +948,8 @@ function ACC_searchKeypadId(device, online, progress, context) {
     }
     data = data.concat(0); // null-terminated string
 
-    var resp = online.invokeFunctionProperty(160, 3, data);
+    // var resp = online.invokeFunctionProperty(160, 3, data);
+    var resp = BASE_invokeFunctionPropertyWrapper(160, 3, data, device, online, progress);
     if (resp[0] != 0) {
         if (resp[0] == 1) {
             progress.setText("KEYPAD: Tastencode ID zum Code Namen " + parCodeName.value + " nicht gefunden.");
@@ -997,7 +1019,8 @@ function ACC_searchKeypadName(device, online, progress, context) {
     var data = [211]; // internal function ID
     data = data.concat((codeId & 0x0000ff00) >> 8, (codeId & 0x000000ff));
 
-    var resp = online.invokeFunctionProperty(160, 3, data);
+    // var resp = online.invokeFunctionProperty(160, 3, data);
+    var resp = BASE_invokeFunctionPropertyWrapper(160, 3, data, device, online, progress);
     if (resp[0] != 0) {
         if (resp[0] == 1) {
             progress.setText("KEYPAD: Code Namen zu Tastencode ID " + codeId + " nicht gefunden.");
@@ -1045,7 +1068,8 @@ function ACC_checkKeypadAction(device, online, progress, context) {
 
         var codeName = "";
 
-        var resp = online.invokeFunctionProperty(160, 3, data);
+        // var resp = online.invokeFunctionProperty(160, 3, data);
+        var resp = BASE_invokeFunctionPropertyWrapper(160, 3, data, device, online, progress);
         if (resp[0] != 0) {
             progress.setText("KEYPAD: Code zu Tastencode ID " + parCodeId.value + " nicht gefunden.");
             online.disconnect();
@@ -1099,7 +1123,8 @@ function ACC_changeKeypad(device, online, progress, context) {
     }
     data = data.concat(0); // null-terminated string
 
-    var resp = online.invokeFunctionProperty(160, 3, data);
+    // var resp = online.invokeFunctionProperty(160, 3, data);
+    var resp = BASE_invokeFunctionPropertyWrapper(160, 3, data, device, online, progress);
     if (resp[0] != 0) {
         if (resp[0] == 1) {
             throw new Error("KEYPAD: Tastencode ID " + parCodeId.value + " nicht gefunden!");
@@ -1121,6 +1146,7 @@ function ACC_syncKeypad(device, online, progress, context) {
     var data = [202]; // internal function ID
     data = data.concat((parCodeId.value & 0x0000ff00) >> 8, (parCodeId.value & 0x000000ff));
 
+    // no Wrapper necessary here
     var resp = online.invokeFunctionProperty(160, 3, data);
     if (resp[0] != 0) {
         if (resp[0] == 1) {
@@ -1143,6 +1169,7 @@ function ACC_deleteKeypad(device, online, progress, context) {
     var data = [203]; // internal function ID
     data = data.concat((parCodeId.value & 0x0000ff00) >> 8, (parCodeId.value & 0x000000ff));
 
+    // no Wrapper necessary here
     var resp = online.invokeFunctionProperty(160, 3, data);
     if (resp[0] != 0) {
         if (resp[0] == 1) {
@@ -1162,6 +1189,7 @@ function ACC_resetKeypad(device, online, progress, context) {
 
     var data = [206]; // internal function ID
 
+    // no Wrapper necessary here
     var resp = online.invokeFunctionProperty(160, 3, data);
     if (resp[0] != 0) {
         throw new Error("KEYPAD: Es ist ein unbekannter Fehler aufgetreten!");
