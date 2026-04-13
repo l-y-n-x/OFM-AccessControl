@@ -1,6 +1,7 @@
 // MatrixKeypad.cpp
 #include "MatrixKeypad.h"
 #include "OpenKNX.h"
+#include "Feedback.h"
 
 MatrixKeypad::MatrixKeypad(uint8_t numRows,
                            uint8_t numCols,
@@ -100,6 +101,7 @@ void MatrixKeypad::handleDebounce(char currentKey)
                 if (m_callback)
                 {
                     m_callback(currentKey); // Trigger the callback!
+                    openknxFeedback.setBuzzer(true);
                     //logDebug("MatrixKeypad", "Key '%c' pressed (debounced)", currentKey);
                 }
             }
