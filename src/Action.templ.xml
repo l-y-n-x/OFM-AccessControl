@@ -15,9 +15,9 @@
                 <Parameter Id="%AID%_UP-%T%%CCCC%07" Name="Act%C%Authenticate" ParameterType="%AID%_PT-CheckBox" Offset="0" BitOffset="1" Text="Authentifizierungs-Aktion" Value="0" />
                 <Parameter Id="%AID%_UP-%T%%CCCC%03" Name="Act%C%ActionType" ParameterType="%AID%_PT-ActionType" Offset="0" BitOffset="2" Text="Aktionstyp" Value="0" />
                 <!-- 4 bit -->
-                <Parameter Id="%AID%_UP-%T%%CCCC%04" Name="Act%C%DelayBase" ParameterType="%AID%_PT-DelayBase" Offset="1" BitOffset="0" Text="Zeitbasis" Value="0" />
+                <Parameter Id="%AID%_UP-%T%%CCCC%04" Name="Act%C%DelayBase" ParameterType="%AID%_PT-DelayBase" Offset="1" BitOffset="0" Text="Zeitbasis" Value="0" op:nowarn="true" />
                 <Parameter Id="%AID%_UP-%T%%CCCC%05" Name="Act%C%DelayTime" ParameterType="%AID%_PT-DelayTime" Offset="1" BitOffset="2" Text="Zeit" Value="0" />
-                <Parameter Id="%AID%_UP-%T%%CCCC%06" Name="Act%C%OnOff" ParameterType="%AID%_PT-OnOff" Offset="1" BitOffset="0" Text="Schaltwert" Value="0" />
+                <Parameter Id="%AID%_UP-%T%%CCCC%06" Name="Act%C%OnOff" ParameterType="%AID%_PT-OnOff" Offset="1" BitOffset="0" Text="Schaltwert" Value="0" op:nowarn="true" />
               </Union>
             </Parameters>
             <ParameterRefs>

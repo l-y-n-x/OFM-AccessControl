@@ -279,8 +279,8 @@
                 <Parameter Id="%AID%_UP-%T%000057" Name="KeyProcessingB" ParameterType="%AID%_PT-OnOffYesNo" Offset="12" BitOffset="1" Text="Taste 'Klingel' als KO verfügbar machen" Value="0" />
                 <Parameter Id="%AID%_UP-%T%000058" Name="KeyProcessingK" ParameterType="%AID%_PT-OnOffYesNo" Offset="12" BitOffset="2" Text="Taste 'Schlüssel' als KO verfügbar machen" Value="0" />
                 <Parameter Id="%AID%_UP-%T%000062" Name="FeedbackBuzzer" ParameterType="%AID%_PT-FeedbackBuzzer" Offset="12" BitOffset="3" Text="Ansteuerung des Rückmelde-Buzzers" Value="1" />
-                <Parameter Id="%AID%_UP-%T%000060" Name="KeyTermination" ParameterType="%AID%_PT-TerminationKey" Offset="12" BitOffset="5" Text="Explizites Abschlusszeichen" Value="0" />
-                <Parameter Id="%AID%_UP-%T%000061" Name="KeyTerminationShort" ParameterType="%AID%_PT-TerminationKeyShort" Offset="12" BitOffset="5" Text="Explizites Abschlusszeichen" Value="0" />
+                <Parameter Id="%AID%_UP-%T%000060" Name="KeyTermination" ParameterType="%AID%_PT-TerminationKey" Offset="12" BitOffset="5" Text="Explizites Abschlusszeichen" Value="0" op:nowarn="true" />
+                <Parameter Id="%AID%_UP-%T%000061" Name="KeyTerminationShort" ParameterType="%AID%_PT-TerminationKeyShort" Offset="12" BitOffset="5" Text="Explizites Abschlusszeichen" Value="0" op:nowarn="true" />
               </Union>
             </Parameters>
             <ParameterRefs>
