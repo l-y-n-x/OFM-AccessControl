@@ -7,6 +7,9 @@
     #include "PCA9633.h"
 #endif
 
+#define BS8116_I2C_CLOCK 100000
+#define READ_KEYS_INTERVAL 50
+
 class KeypadForGira : public KeypadBase
 {
   public:
@@ -27,8 +30,12 @@ class KeypadForGira : public KeypadBase
   private:
     char mapKey(uint8_t index) const;
     void updateLeds();
+    bool tryApplyConfig();
 
     uint16_t _lastKeymap = 0;
+    bool _configVerified = false;
+    uint32_t _configRetryTimer = 0;
+    uint32_t _readKeysTimer = 0;
     BS811X _keypad;
 
 #ifdef KEYPAD_PCA9633_ADDR

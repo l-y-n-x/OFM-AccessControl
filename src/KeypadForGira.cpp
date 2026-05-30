@@ -16,13 +16,34 @@ void KeypadForGira::init(bool testMode)
     logInfoP("Initialized PCA9633.");
 #endif
 
-    if (_keypad.begin("8116"))
-        logInfoP("Initialized BS8116.");
+    // Bound every BS811X / bus I2C operation. While the chip is in its idle low-power state it
+    // clock-stretches and ignores I2C; without this the loop blocks ~2 s per poll (one timeout
+    // for the register-pointer write, one for the read). 20 ms is ample for a real transaction
+    // and keeps us well under OPENKNX_LOOPTIME_WARNING. reset_with_timeout=true recovers the bus.
+    OPENKNX_GPIO_WIRE.setTimeout(20, true);
+
+    // The BS8116A is limited to 100 kHz; talk to it at that speed, then restore the global speed.
+    OPENKNX_GPIO_WIRE.setClock(BS8116_I2C_CLOCK);
+    _configVerified = _keypad.begin("8116");
+    OPENKNX_GPIO_WIRE.setClock(OPENKNX_GPIO_CLOCK);
+    if (_configVerified)
+        logInfoP("Initialized BS8116 (settings applied).");
     else
-        logInfoP("Failed to initialize BS8116.");
+        logInfoP("BS8116 not yet configured (chip idle); will retry once it becomes responsive.");
 
     _lastKeymap = 0;
     _initialized = true;
+}
+
+bool KeypadForGira::tryApplyConfig()
+{
+    // Re-send the option registers and read them back. With the short bus timeout this returns
+    // quickly: success if the chip is awake, fast timeout (-> retry later) if it is still idle.
+    if (_keypad.setSetting() != 0)
+        return false;
+    uint8_t readback[21] = {0};
+    _keypad.readSetting(readback);
+    return readback[4] == 0x98; // register 0xB4 (Option2): bit6 = LSC, expected cleared
 }
 
 void KeypadForGira::loop(bool testMode)
@@ -33,10 +54,29 @@ void KeypadForGira::loop(bool testMode)
     // first call base (necessary for correct effect evaluation)
     KeypadBase::loop(testMode);
 
-    // if (!testMode && ParamACC_NfcScanner == 0)
-    //     return;
-    
+    if (!delayCheck(_readKeysTimer, READ_KEYS_INTERVAL))
+        return;
+    _readKeysTimer = delayTimerInit();
+
+    // The BS8116A is limited to 100 kHz, so drop the shared bus to that speed only while we talk
+    // to it (config retry + key readout), then restore the global speed for the other devices.
+    OPENKNX_GPIO_WIRE.setClock(BS8116_I2C_CLOCK);
+
+    // The option write only succeeds while the chip is awake (e.g. after the first key touch).
+    // Keep retrying cheaply until LSC=0 is confirmed; afterwards the chip stays responsive.
+    if (!_configVerified && delayCheck(_configRetryTimer, 1000))
+    {
+        _configRetryTimer = delayTimerInit();
+        if (tryApplyConfig())
+        {
+            _configVerified = true;
+            logInfoP("BS8116 settings applied and verified (LSC off).");
+        }
+    }
+
     uint16_t keymap = _keypad.readKeys();
+
+    OPENKNX_GPIO_WIRE.setClock(OPENKNX_GPIO_CLOCK); // restore global bus speed
 
     if (testMode)
     {
