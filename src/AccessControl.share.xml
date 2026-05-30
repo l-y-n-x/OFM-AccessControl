@@ -86,7 +86,7 @@
               <ParameterType Id="%AID%_PT-Keypad" Name="Keypad">
                 <TypeRestriction Base="Value" SizeInBit="2" UIHint="DropDown">
                   <Enumeration Text="Kein Keypad" Value="0" Id="%ENID%" />
-                  <Enumeration Text="Keypad (Touch) von Gira" Value="1" Id="%ENID%" />
+                  <Enumeration Text="Keypad (Touch) für Gira-Front" Value="1" Id="%ENID%" />
                   <Enumeration Text="Keypad (Tastatur 3x4)" Value="2" Id="%ENID%" />
                 </TypeRestriction>
               </ParameterType>
