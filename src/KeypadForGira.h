@@ -8,7 +8,8 @@
 #endif
 
 #define BS8116_I2C_CLOCK 100000
-#define READ_KEYS_INTERVAL 50
+#define READ_KEYS_INTERVAL 50          // poll interval while the chip is responsive (normal mode)
+#define READ_KEYS_INTERVAL_STANDBY 250 // backed-off interval while the chip is in standby (clock-stretching)
 
 class KeypadForGira : public KeypadBase
 {
@@ -36,6 +37,7 @@ class KeypadForGira : public KeypadBase
     bool _configVerified = false;
     uint32_t _configRetryTimer = 0;
     uint32_t _readKeysTimer = 0;
+    uint32_t _readKeysInterval = READ_KEYS_INTERVAL;
     BS811X _keypad;
 
 #ifdef KEYPAD_PCA9633_ADDR

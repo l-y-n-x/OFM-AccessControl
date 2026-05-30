@@ -54,7 +54,7 @@ void KeypadForGira::loop(bool testMode)
     // first call base (necessary for correct effect evaluation)
     KeypadBase::loop(testMode);
 
-    if (!delayCheck(_readKeysTimer, READ_KEYS_INTERVAL))
+    if (!delayCheck(_readKeysTimer, _readKeysInterval))
         return;
     _readKeysTimer = delayTimerInit();
 
@@ -74,7 +74,13 @@ void KeypadForGira::loop(bool testMode)
         }
     }
 
+    // Read the keys, watching whether the bus timed out. A timeout means the chip is in standby
+    // and clock-stretching, so polling fast is pointless: back off to the standby interval. As
+    // soon as a read succeeds (chip awake) we return to the fast interval. The chip's own
+    // wake-from-standby latency is 0.5-1 s, so the slower idle poll costs no real responsiveness.
+    OPENKNX_GPIO_WIRE.clearTimeoutFlag();
     uint16_t keymap = _keypad.readKeys();
+    _readKeysInterval = OPENKNX_GPIO_WIRE.getTimeoutFlag() ? READ_KEYS_INTERVAL_STANDBY : READ_KEYS_INTERVAL;
 
     OPENKNX_GPIO_WIRE.setClock(OPENKNX_GPIO_CLOCK); // restore global bus speed
 
