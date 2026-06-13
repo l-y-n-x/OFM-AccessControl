@@ -22,7 +22,6 @@ function ACC_sort(device, online, progress, context) {
         } while (parStartAction.value != 0);
         // now startIndex points to a zero entry and endIndex to a non-zero entry, we move end to start
         if (endIndex > startIndex) {
-            FingerActionInfo
             var parStartFinger = device.getParameterByName("FINACT_Fa" + startIndex + "FingerId");
             var parEndFinger = device.getParameterByName("FINACT_Fa" + endIndex + "FingerId");
             var parStartInfo = device.getParameterByName("FINACT_Fa" + startIndex + "FingerActionInfo");
