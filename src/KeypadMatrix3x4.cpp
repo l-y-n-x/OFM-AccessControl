@@ -3,8 +3,9 @@
 #include <utility>
 
 KeypadMatrix3x4::KeypadMatrix3x4()
-    : KeypadBase()
+: KeypadBase()
 {
+#ifdef OPENKNX_ACC_KEYPAD_ROW_PINS
     _keypad = new MatrixKeypad(
         4,
         3,
@@ -13,6 +14,7 @@ KeypadMatrix3x4::KeypadMatrix3x4()
         (const char[]){'1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '0', '#'},
         [this](char key) { if (_callback) _callback(key); },
         50);
+#endif
 }
 
 void KeypadMatrix3x4::init(bool testMode)
@@ -28,7 +30,9 @@ void KeypadMatrix3x4::loop(bool testMode)
 
     // first call base (necessary for correct effect evaluation)
     KeypadBase::loop(testMode);
+#ifdef OPENKNX_ACC_KEYPAD_ROW_PINS
     _keypad->loop();
+#endif
 }
 
 void KeypadMatrix3x4::setInfoLed(uint32_t ledColor)

@@ -5,6 +5,7 @@ KeypadForGira::KeypadForGira() {};
 
 void KeypadForGira::init(bool testMode)
 {
+#ifdef OPENKNX_GPIO_WIRE
     // if (!testMode && ParamACC_NfcScanner == 0)
     //     return;
 
@@ -30,7 +31,7 @@ void KeypadForGira::init(bool testMode)
         logInfoP("Initialized BS8116 (settings applied).");
     else
         logInfoP("BS8116 not yet configured (chip idle); will retry once it becomes responsive.");
-
+#endif
     _lastKeymap = 0;
     _initialized = true;
 }
@@ -58,6 +59,7 @@ void KeypadForGira::loop(bool testMode)
         return;
     _readKeysTimer = delayTimerInit();
 
+#ifdef OPENKNX_GPIO_WIRE
     // The BS8116A is limited to 100 kHz, so drop the shared bus to that speed only while we talk
     // to it (config retry + key readout), then restore the global speed for the other devices.
     OPENKNX_GPIO_WIRE.setClock(BS8116_I2C_CLOCK);
@@ -123,6 +125,7 @@ void KeypadForGira::loop(bool testMode)
                 _callback(resolved);
         }
     }
+#endif
 }
 
 void KeypadForGira::setInfoLed(uint32_t ledColor)
