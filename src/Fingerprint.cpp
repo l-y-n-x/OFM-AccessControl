@@ -206,7 +206,7 @@ uint16_t Fingerprint::getNextFreeLocation()
 
 Fingerprint::FindFingerResult Fingerprint::findFingerprint()
 {
-    FindFingerResult findFingerResult;
+    FindFingerResult findFingerResult = {.found=false, .location=0, .checksum=0};
     if (!scannerReady)
         return findFingerResult;
 
@@ -641,3 +641,4 @@ void Fingerprint::_delayCallbackDefault(uint32_t period)
 {
     delay(period);
 }
+
