@@ -159,6 +159,7 @@ class AccessControl : public OpenKNX::Module
     void handleFunctionPropertyResetKeypad(uint8_t *data, uint8_t *resultData, uint8_t &resultLength);
     void handleFunctionPropertySearchCodeNameByCodeId(uint8_t *data, uint8_t *resultData, uint8_t &resultLength);
     void handleFunctionPropertySearchCodeIdByCodeName(uint8_t *data, uint8_t *resultData, uint8_t &resultLength);
+    void handleFunctionPropertyWaitSyncSending(uint8_t *data, uint8_t *resultData, uint8_t &resultLength);
     static void delayCallback(uint32_t period);
     void runTestMode(uint8_t testModeNfc, bool testModeKeypad);
 

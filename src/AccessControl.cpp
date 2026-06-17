@@ -1086,7 +1086,7 @@ void AccessControl::processInputKoEnrollNfc(GroupObject &ko)
 void AccessControl::processInputKoKeypadBacklight(GroupObject &ko)
 {
     // determine DPT of keypad backlight KO
-    Dpt dpt = ParamACC_BacklightIntensity == VAL_Keypad_Backlight_Ko ? DPT_DecimalFactor : DPT_Switch;
+    Dpt dpt = (ParamACC_BacklightIntensity == PT_BacklightIntensity::byKO) ? DPT_DecimalFactor : DPT_Switch;
     keypadBase->setBacklight((ko.value(dpt)));
 }
 
@@ -1107,7 +1107,7 @@ void AccessControl::onKeypadKeyPressed(char key)
         logDebugP("Keypad key pressed: %c", key);
     
     // backlight is always processed on keypress
-    if (ParamACC_BacklightState == VAL_Keypad_Backlight_Keypress)
+    if (ParamACC_BacklightState == PT_BacklightState::onByAnyKey)
         keypadBase->setBacklight(true);
 
     // send keypress event if enabled
@@ -1115,7 +1115,7 @@ void AccessControl::onKeypadKeyPressed(char key)
         KoACC_KeypadKeypress.value(true, DPT_Switch);
     
     // further processing depends on configured keys
-    if (isFirstKeypress && ParamACC_KeypressIngore && ParamACC_BacklightState != VAL_Keypad_Backlight_On && ParamACC_BacklightState != VAL_Keypad_Backlight_Off)
+    if (isFirstKeypress && ParamACC_KeypressIngore && ParamACC_BacklightState != PT_BacklightState::alwaysOn && ParamACC_BacklightState != PT_BacklightState::alwaysOff)
         return;
 
     // do we have a terminal key defined?
@@ -1162,7 +1162,10 @@ void AccessControl::onKeypadKeyPressed(char key)
         keypadBase->setFeedback(KeypadBase::FeedbackType::Kepress);
 
     keypadLastKeypressTimer = delayTimerInit();
-    keypadCode[++keypadCodePosition] = key;
+    if (keypadCodePosition < MAX_KEY_LEN - 1)
+    {
+        keypadCode[++keypadCodePosition] = key;
+    }
     logInfoP("Current Keycode: %s", keypadCode);
 
     if (terminalKey == '\0')
@@ -1728,6 +1731,9 @@ bool AccessControl::processFunctionProperty(uint8_t objectIndex, uint8_t propert
             return true;
         case 212:
             handleFunctionPropertySearchCodeIdByCodeName(data, resultData, resultLength);
+            return true;
+        case 240:
+            handleFunctionPropertyWaitSyncSending(data, resultData, resultLength);
             return true;
     }
 
@@ -2676,6 +2682,26 @@ void AccessControl::handleFunctionPropertySearchCodeIdByCodeName(uint8_t *data, 
 
     logDebugP("foundTotalCount: %u", foundTotalCount);
     logDebugP("returned resultLength: %u", resultLength);
+    logIndentDown();
+}
+
+void AccessControl::handleFunctionPropertyWaitSyncSending(uint8_t *data, uint8_t *resultData, uint8_t &resultLength)
+{
+    logInfoP("Function property: Wait for Sync Sending");
+    logIndentUp();
+    if (syncSending) {
+        resultData[0] = 0; // valid result
+        resultData[1] = 1; // still sending
+        resultData[2] = syncSendPacketSentCount;
+        resultData[3] = syncSendPacketCount;
+        resultLength = 4;
+    }
+    else
+    {
+        resultData[0] = 0; // valid result
+        resultData[1] = 0; // send finished
+        resultLength = 2;
+    }
     logIndentDown();
 }
 

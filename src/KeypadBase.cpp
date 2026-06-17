@@ -17,7 +17,7 @@ void KeypadBase::runTestMode() {}
 
 void KeypadBase::init(bool testMode) 
 {
-    if (ParamACC_BacklightState == VAL_Keypad_Backlight_On)
+    if (ParamACC_BacklightState == PT_BacklightState::alwaysOn)
     {
         setBacklight(true);
         _backlightTimer = 0; // backlight will not be turned off
@@ -128,19 +128,19 @@ void KeypadBase::setBacklight(bool on) {
     {
         switch (ParamACC_BacklightIntensity)
         {
-            case VAL_Keypad_BacklightIntensity_High:
+            case PT_BacklightIntensity::high:
                 intensity = 0xFF;
                 break;
-            case VAL_Keypad_BacklightIntensity_Middle:
+            case PT_BacklightIntensity::medium:
                 intensity = 0x7F;
                 break;
-            case VAL_Keypad_BacklightIntensity_Low:
+            case PT_BacklightIntensity::low:
                 intensity = 0x3F;
                 break;
-            case VAL_Keypad_BacklightIntensity_Ko:
+            case PT_BacklightIntensity::byKO:
                 intensity = KoACC_KeypadBacklight.value(DPT_DecimalFactor);
                 break;            
-                default:
+            default:
                 intensity = 0x00;
                 break;
         }

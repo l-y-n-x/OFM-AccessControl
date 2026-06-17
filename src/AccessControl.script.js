@@ -441,27 +441,60 @@ function ACC_changeFinger(device, online, progress, context) {
     progress.setText("Fingerprint: Finger ID " + parFingerId.value + " geändert.");
 }
 
-function ACC_syncFinger(device, online, progress, context) {
-    var parFingerId = device.getParameterByName("ACC_SyncFingerId");
+function ACC_sleep(milliseconds) {
+    var currentTime = new Date().getTime();
+    while (currentTime + milliseconds >= new Date().getTime()) {
+    }
+}
 
-    progress.setText("Fingerprint: Finger ID " + parFingerId.value + " synchronisieren...");
+function ACC_syncData(device, online, progress, context, functionId, objectId, objectText, keyText) {
+
+    progress.setText(objectText + ": " + keyText + " " + objectId + " synchronisieren...");
     online.connect();
 
-    var data = [2]; // internal function ID
-    data = data.concat((parFingerId.value & 0x0000ff00) >> 8, (parFingerId.value & 0x000000ff));
+    var data = [functionId]; // internal function ID
+    data = data.concat((objectId & 0x0000ff00) >> 8, (objectId & 0x000000ff));
 
     // no Wrapper necessary here
     var resp = online.invokeFunctionProperty(160, 3, data);
     if (resp[0] != 0) {
         if (resp[0] == 1) {
-            throw new Error("Fingerprint: Finger ID " + parFingerId.value + " nicht gefunden!");
+            throw new Error(objectText + ": " + keyText + " " + objectId + " nicht gefunden!");
         } else {
-            throw new Error("Fingerprint: Es ist ein unbekannter Fehler aufgetreten!");
+            throw new Error(objectText + ": Es ist ein unbekannter Fehler aufgetreten!");
         }
     }
 
+    progress.setText(objectText + ": " + keyText + " " + objectId + " Synchronisierung gestartet.");
+    progress.setProgress(10);
+
+    var cancelled = progress.isCanceled();
+    var percent = 0;
+    data = [240, 0]; // command wait for sync request finished
+    resp = [0, 1]; // initial response to start polling
+    // poll for sync finished
+    while (resp[0] == 0 && resp[1] == 1 && !cancelled) {
+        ACC_sleep(1000);
+        resp = online.invokeFunctionProperty(160, 3, data); // short message (wait polling)
+        if (resp[0] != 0) {
+            throw new Error(objectText + ": Es ist ein unbekannter Fehler aufgetreten!");
+        }
+        percent = resp[2] / resp[3] * 90 + 10;
+        if (percent <= 100) progress.setProgress(percent);
+        progress.setText(objectText + ": " + keyText + " " + objectId + ", Paket " + resp[2] + " von " + resp[3] + " übertragen.");
+        cancelled = progress.isCanceled();
+    }
+    if (resp[0] == 0 && resp[1] == 0 && !cancelled) {
+        progress.setText(objectText + ": " + keyText + " " + objectId + " synchronisiert.");
+        progress.setProgress(100);
+    }
     online.disconnect();
-    progress.setText("Fingerprint: Finger ID " + parFingerId.value + " Synchronisierung gestartet.");
+}
+
+function ACC_syncFinger(device, online, progress, context) {
+    var parFingerId = device.getParameterByName("ACC_SyncFingerId");
+
+    ACC_syncData(device, online, progress, context, 2, parFingerId.value, "Fingerprint", "Finger ID");
 }
 
 function ACC_deleteFinger(device, online, progress, context) {
@@ -860,24 +893,7 @@ function ACC_changeNfc(device, online, progress, context) {
 function ACC_syncNfc(device, online, progress, context) {
     var parNfcId = device.getParameterByName("ACC_SyncNfcId");
 
-    progress.setText("NFC: NFC ID " + parNfcId.value + " synchronisieren...");
-    online.connect();
-
-    var data = [102]; // internal function ID
-    data = data.concat((parNfcId.value & 0x0000ff00) >> 8, (parNfcId.value & 0x000000ff));
-
-    // no Wrapper necessary here
-    var resp = online.invokeFunctionProperty(160, 3, data);
-    if (resp[0] != 0) {
-        if (resp[0] == 1) {
-            throw new Error("NFC: NFC ID " + parNfcId.value + " nicht gefunden!");
-        } else {
-            throw new Error("NFC: Es ist ein unbekannter Fehler aufgetreten!");
-        }
-    }
-
-    online.disconnect();
-    progress.setText("NFC: NFC ID " + parNfcId.value + " Synchronisierung gestartet.");
+    ACC_syncData(device, online, progress, context, 102, parNfcId.value, "NFC", "NFC ID");
 }
 
 function ACC_deleteNfc(device, online, progress, context) {
@@ -930,7 +946,7 @@ function ACC_searchKeypadId(device, online, progress, context) {
     parNumberSearchResultsOverflow.value = 0;
     parNumberSearchResultsToDisplay.value = 0;
 
-    progress.setText("KEYPAD: Tag ID zum Tag Namen " + parCodeName.value + " suchen...");
+    progress.setText("Keypad: Tag ID zum Tag Namen " + parCodeName.value + " suchen...");
     online.connect();
 
     var data = [212]; // internal function ID
@@ -951,11 +967,11 @@ function ACC_searchKeypadId(device, online, progress, context) {
     var resp = BASE_invokeFunctionPropertyWrapper(160, 3, data, device, online, progress);
     if (resp[0] != 0) {
         if (resp[0] == 1) {
-            progress.setText("KEYPAD: Tastencode ID zum Code Namen " + parCodeName.value + " nicht gefunden.");
+            progress.setText("Keypad: Tastencode ID zum Code Namen " + parCodeName.value + " nicht gefunden.");
             online.disconnect();
             return;
         } else {
-            throw new Error("KEYPAD: Es ist ein unbekannter Fehler aufgetreten!");
+            throw new Error("Keypad: Es ist ein unbekannter Fehler aufgetreten!");
         }
     }
 
@@ -964,7 +980,7 @@ function ACC_searchKeypadId(device, online, progress, context) {
     var numRes = (resp.length - 3) / 40;
     var totalMatches = resp[1] << 8 | resp[2];
     info("totalMatches " + totalMatches);
-    progress.setText("KEYPAD: " + totalMatches + " Tastencode ID(s) zum Code Namen " + parCodeName.value + " gefunden.");
+    progress.setText("Keypad: " + totalMatches + " Tastencode ID(s) zum Code Namen " + parCodeName.value + " gefunden.");
 
     // following up to 10 results in total
     // always 2 bytes codeId, 10 byte UID and 28 bytes codeName
@@ -1012,7 +1028,7 @@ function ACC_searchKeypadName(device, online, progress, context) {
     parNumberSearchResultsOverflow.value = 0;
     var codeId = parCodeId.value;
 
-    progress.setText("KEYPAD: Code Namen zur Tastencode ID " + codeId + " suchen...");
+    progress.setText("Keypad: Code Namen zur Tastencode ID " + codeId + " suchen...");
     online.connect();
 
     var data = [211]; // internal function ID
@@ -1022,16 +1038,16 @@ function ACC_searchKeypadName(device, online, progress, context) {
     var resp = BASE_invokeFunctionPropertyWrapper(160, 3, data, device, online, progress);
     if (resp[0] != 0) {
         if (resp[0] == 1) {
-            progress.setText("KEYPAD: Code Namen zu Tastencode ID " + codeId + " nicht gefunden.");
+            progress.setText("Keypad: Code Namen zu Tastencode ID " + codeId + " nicht gefunden.");
             online.disconnect();
             return;
         } else {
-            throw new Error("KEYPAD: Es ist ein unbekannter Fehler aufgetreten!");
+            throw new Error("Keypad: Es ist ein unbekannter Fehler aufgetreten!");
         }
     }
 
     online.disconnect();
-    progress.setText("KEYPAD: Code Namen zu Tastencode ID " + codeId + " gefunden.");
+    progress.setText("Keypad: Code Namen zu Tastencode ID " + codeId + " gefunden.");
 
     // NFC tag UID, 10 bytes, currently ignored
 
@@ -1059,7 +1075,7 @@ function ACC_checkKeypadAction(device, online, progress, context) {
 
     if (parActionId.value <= parVisibleActions.value) {
 
-        progress.setText("KEYPAD: Code zu Tastencode ID " + parCodeId.value + " suchen...");
+        progress.setText("Keypad: Code zu Tastencode ID " + parCodeId.value + " suchen...");
         online.connect();
     
         var data = [211]; // internal function ID
@@ -1070,12 +1086,12 @@ function ACC_checkKeypadAction(device, online, progress, context) {
         // var resp = online.invokeFunctionProperty(160, 3, data);
         var resp = BASE_invokeFunctionPropertyWrapper(160, 3, data, device, online, progress);
         if (resp[0] != 0) {
-            progress.setText("KEYPAD: Code zu Tastencode ID " + parCodeId.value + " nicht gefunden.");
+            progress.setText("Keypad: Code zu Tastencode ID " + parCodeId.value + " nicht gefunden.");
             online.disconnect();
             return;
         } else {
             online.disconnect();
-            progress.setText("KEYPAD: Code zu Tastencode ID " + parCodeId.value + " gefunden.");
+            progress.setText("Keypad: Code zu Tastencode ID " + parCodeId.value + " gefunden.");
         
             personKeypad = resp[1];
             for (var i = 11; i < resp.length; ++i) {
@@ -1098,7 +1114,7 @@ function ACC_changeKeypad(device, online, progress, context) {
     var parCode = device.getParameterByName("ACC_EnrollCodeKey");
     var parCodeName = device.getParameterByName("ACC_EnrollCodeName");
 
-    progress.setText("KEYPAD: Tastencode ID " + parCodeId.value + " ändern...");
+    progress.setText("Keypad: Tastencode ID " + parCodeId.value + " ändern...");
     online.connect();
 
     var data = [204]; // internal function ID
@@ -1126,43 +1142,26 @@ function ACC_changeKeypad(device, online, progress, context) {
     var resp = BASE_invokeFunctionPropertyWrapper(160, 3, data, device, online, progress);
     if (resp[0] != 0) {
         if (resp[0] == 1) {
-            throw new Error("KEYPAD: Tastencode ID " + parCodeId.value + " nicht gefunden!");
+            throw new Error("Keypad: Tastencode ID " + parCodeId.value + " nicht gefunden!");
         } else {
-            throw new Error("KEYPAD: Es ist ein unbekannter Fehler aufgetreten!");
+            throw new Error("Keypad: Es ist ein unbekannter Fehler aufgetreten!");
         }
     }
 
     online.disconnect();
-    progress.setText("KEYPAD: Tastencode ID " + parCodeId.value + " geändert.");
+    progress.setText("Keypad: Tastencode ID " + parCodeId.value + " geändert.");
 }
 
 function ACC_syncKeypad(device, online, progress, context) {
     var parCodeId = device.getParameterByName("ACC_SyncCodeId");
 
-    progress.setText("KEYPAD: Tastencode ID " + parCodeId.value + " synchronisieren...");
-    online.connect();
-
-    var data = [202]; // internal function ID
-    data = data.concat((parCodeId.value & 0x0000ff00) >> 8, (parCodeId.value & 0x000000ff));
-
-    // no Wrapper necessary here
-    var resp = online.invokeFunctionProperty(160, 3, data);
-    if (resp[0] != 0) {
-        if (resp[0] == 1) {
-            throw new Error("KEYPAD: Tastencode ID " + parCodeId.value + " nicht gefunden!");
-        } else {
-            throw new Error("KEYPAD: Es ist ein unbekannter Fehler aufgetreten!");
-        }
-    }
-
-    online.disconnect();
-    progress.setText("KEYPAD: Tastencode ID " + parCodeId.value + " Synchronisierung gestartet.");
+    ACC_syncData(device, online, progress, context, 202, parCodeId.value, "Keypad", "Tastencode ID");
 }
 
 function ACC_deleteKeypad(device, online, progress, context) {
     var parCodeId = device.getParameterByName("ACC_DeleteCodeId");
 
-    progress.setText("KEYPAD: Tastencode ID " + parCodeId.value + " löschen...");
+    progress.setText("Keypad: Tastencode ID " + parCodeId.value + " löschen...");
     online.connect();
 
     var data = [203]; // internal function ID
@@ -1172,18 +1171,18 @@ function ACC_deleteKeypad(device, online, progress, context) {
     var resp = online.invokeFunctionProperty(160, 3, data);
     if (resp[0] != 0) {
         if (resp[0] == 1) {
-            throw new Error("KEYPAD: Tastencode ID " + parCodeId.value + " nicht gefunden!");
+            throw new Error("Keypad: Tastencode ID " + parCodeId.value + " nicht gefunden!");
         } else {
-            throw new Error("KEYPAD: Es ist ein unbekannter Fehler aufgetreten!");
+            throw new Error("Keypad: Es ist ein unbekannter Fehler aufgetreten!");
         }
     }
 
     online.disconnect();
-    progress.setText("KEYPAD: Tastencode ID " + parCodeId.value + " gelöscht.");
+    progress.setText("Keypad: Tastencode ID " + parCodeId.value + " gelöscht.");
 }
 
 function ACC_resetKeypad(device, online, progress, context) {
-    progress.setText("KEYPAD: Alle Tastencodes löschen...");
+    progress.setText("Keypad: Alle Tastencodes löschen...");
     online.connect();
 
     var data = [206]; // internal function ID
@@ -1191,9 +1190,9 @@ function ACC_resetKeypad(device, online, progress, context) {
     // no Wrapper necessary here
     var resp = online.invokeFunctionProperty(160, 3, data);
     if (resp[0] != 0) {
-        throw new Error("KEYPAD: Es ist ein unbekannter Fehler aufgetreten!");
+        throw new Error("Keypad: Es ist ein unbekannter Fehler aufgetreten!");
     }
 
     online.disconnect();
-    progress.setText("KEYPAD: Alle Tastencodes gelöscht.");
+    progress.setText("Keypad: Alle Tastencodes gelöscht.");
 }
