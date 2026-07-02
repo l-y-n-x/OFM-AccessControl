@@ -1,5 +1,6 @@
 #include <utility>
 #include "KeypadBase.h"
+#include "Feedback.h"
 
 KeypadBase::KeypadBase(){}
 
@@ -116,6 +117,25 @@ void KeypadBase::setFeedback(FeedbackType feedbackType)
                 _ledPulse = 0;
                 _ledPause = 0;
                 break;
+        }
+    }
+
+    
+    if (ParamACC_FeedbackBuzzer & 1)
+    {
+        switch (feedbackType)
+        {
+            case FeedbackType::Kepress:
+                openknxFeedback.setBuzzer(true, false, 100);
+                break;
+            case FeedbackType::Failed:
+            case FeedbackType::CodeUnknown:
+            case FeedbackType::PauseExceeded:
+                openknxFeedback.setBuzzer(true, false, 1000);
+                break;
+            // ToDo:
+            // add Buzzer Feedback for success and
+            // use Beep-Codes to differentiate between different status => OFM-Feedback change neccessary
         }
     }
 }

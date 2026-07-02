@@ -101,7 +101,6 @@ void MatrixKeypad::handleDebounce(char currentKey)
                 if (m_callback)
                 {
                     m_callback(currentKey); // Trigger the callback!
-                    openknxFeedback.setBuzzer(true);
                     //logDebug("MatrixKeypad", "Key '%c' pressed (debounced)", currentKey);
                 }
             }
