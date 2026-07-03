@@ -18,10 +18,15 @@ Es gibt eine kleinere Applikationsversion mit bis zu 200 Aktionen/Fingerzuordnun
 
 Im folgenden werden Änderungen an dem Dokument erfasst, damit man nicht immer das Gesamtdokument lesen muss, um Neuerungen zu erfahren.
 
+03.07.2026: Firmware 0.15.0, Applikation 0.15
+
+* NEU: Unterstützung vom 4x3 Keypad am [UP1-SEN-8x](http://device.openknx.de/UP1-SEN-8x) 
+* FIX: Probleme mit blockierten Tasten und verzögerten Reaktionen des Gerätes beim Anschluß vom Keypad für GIRA sind jetzt gelöst
+
 22.01.2026: Firmware 0.11, Applikation 0.11
 
 * NEU: Erweiterung der Applikation, um Zahlencodes als Zutrittsmedium zu etablieren und Aktionen zuzuweisen.
-* NEU: Unterstützung vom GIRA Keypad
+* NEU: Unterstützung vom Keypad für GIRA
 * NEU: Vorbereitung für weitere Keypads
 
 18.09.2025: Firmware 0.10, Applikation 0.10
